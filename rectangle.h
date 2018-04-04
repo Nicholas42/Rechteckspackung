@@ -2,6 +2,8 @@
 #define RECTANGLE_H
 
 #include <iostream>
+#include <cassert>
+
 
 typedef int pos;
 
@@ -25,9 +27,9 @@ struct rectangle
     rotation rot = rotated_0;    
 };
 
-std::ostream& operator<< (std::ostream &out, const rectangle &rect);
+std::ostream &operator<< (std::ostream &out, const rectangle &rect);
 
-std::istream& operator>> (std::istream &in, rectangle &rect);
+std::istream &operator>> (std::istream &in, rectangle &rect);
 
 int main()
 {

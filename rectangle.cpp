@@ -1,4 +1,3 @@
-#include <cassert>
 #include "rectangle.h"
 
 std::ostream &operator<<(std::ostream &out, const rectangle &rect)
@@ -29,7 +28,7 @@ std::ostream &operator<<(std::ostream &out, const rectangle &rect)
     return out;
 }
 
-std::istream& operator>> (std::istream &in, rectangle &rect)
+std::istream &operator>> (std::istream &in, rectangle &rect)
 {
     if(in.peek() == 'B')
     {
