@@ -23,6 +23,7 @@ struct rectangle
     pos y = -1;
     pos width = 0;
     pos height = 0;
+    int id;
 
     bool blockage = false;
     bool flipped = 0;
@@ -33,11 +34,13 @@ struct rectangle
     bool contains_y(pos to_check) const;
     bool intersects(const rectangle &rect) const;
 
-    bool leftOf(const rectangle &rect) const;
+    bool left_of(const rectangle &rect) const;
     bool beneath(const rectangle &rect) const;
     bool operator<(const rectangle &rect) const;
     
     void rotate(rotation rotate);
+
+    static bool compare(const rectangle &left, const rectangle &right);
 };
 
 std::ostream &operator<< (std::ostream &out, const rectangle &rect);

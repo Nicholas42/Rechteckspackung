@@ -9,42 +9,45 @@ bool rectangle::placed() const
 }
 
 /**
- * Checks if the interior of the rectangle contains the specified x-coordinate. Observes 
- * rotation. Only works for already placed rectangles.
+ * Checks if the rectangle contains the specified x-coordinate. 
+ * Observes rotation. Only works for already placed rectangles. 
+ * The right edge is not considered part of the rectangle.
  */
 bool rectangle::contains_x(pos to_check) const
 {
     assert(placed());
     if(rot == rotated_0 || rot == rotated_180)
     {
-        return (x < to_check) && (to_check < x + width);
+        return (x <= to_check) && (to_check < x + width);
     }
     else
     {
-        return (x < to_check) && (to_check < x + height);
+        return (x <= to_check) && (to_check < x + height);
     }
 }
 
 /**
- * Checks if the interior of the rectangle contains the specified y-coordinate. Observes 
- * rotation. Only works for already placed rectangles.
+ * Checks if the rectangle contains the specified y-coordinate. 
+ * Observes rotation. Only works for already placed rectangles.
+ * The upper edge is not considered part of the rectangle.
  */
 bool rectangle::contains_y(pos to_check) const
 {
     assert(placed());
     if(rot == rotated_0 || rot == rotated_180)
     {
-        return (y < to_check) && (to_check < y + height);
+        return (y <= to_check) && (to_check < y + height);
     }
     else
     {
-        return (y < to_check) && (to_check < y + width);
+        return (y <= to_check) && (to_check < y + width);
     }
 }
 
 /**
- * Checks if the rectangle intersects with the passed rectangle. A common border does not 
- * count as intersection. Only works for already placed rectangles.
+ * Checks if the rectangle intersects with the passed rectangle. 
+ * A common border does not count as intersection. Only works for
+ * already placed rectangles.
  */
 bool rectangle::intersects(const rectangle &rect) const
 {
@@ -55,10 +58,10 @@ bool rectangle::intersects(const rectangle &rect) const
 }
 
 /**
- * Checks if the rectangle is left of the passed rectangle. The relevant data is the position of 
- * the base points.
+ * Checks if the rectangle is left of the passed rectangle. 
+ * The relevant data is the position of the base points.
  */
-bool rectangle::leftOf(const rectangle &rect) const
+bool rectangle::left_of(const rectangle &rect) const
 {
     assert(placed() && rect.placed());
 
@@ -66,8 +69,8 @@ bool rectangle::leftOf(const rectangle &rect) const
 }
 
 /**
- * Checks if the rectangle is beneath the passed rectangle. The relevant data is the position of 
- * the base points.
+ * Checks if the rectangle is beneath the passed rectangle. 
+ * The relevant data is the position of the base points.
  */
 bool rectangle::beneath(const rectangle &rect) const
 {
@@ -81,7 +84,14 @@ bool rectangle::beneath(const rectangle &rect) const
  */
 bool rectangle::operator<(const rectangle &rect) const
 {
-    return beneath(rect);
+    if(y == rect.y)
+    {
+        return id < rect.id;
+    }
+    else
+    {
+        return beneath(rect);
+    }
 }
 
 /**
@@ -91,6 +101,14 @@ bool rectangle::operator<(const rectangle &rect) const
 void rectangle::rotate(rotation rotate)
 {
     rot = static_cast<rotation>(rot + rotate);
+}
+
+/**
+ * A static wrapper for the left-of-comparison.
+ */
+bool rectangle::compare(const rectangle &left, const rectangle &right)
+{
+    return left.left_of(right);
 }
 
 /**
