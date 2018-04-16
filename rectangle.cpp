@@ -46,8 +46,12 @@ std::istream &operator>> (std::istream &in, rectangle &rect)
         rect.width = x_max - rect.x;
         rect.height = y_max - rect.y;
 
-        // Assert that xmax > xmin and ymax > ymin
-        assert(rect.width > 0 && rect.height > 0);
+        // Check that xmax > xmin and ymax > ymin
+		if (rect.width < 0 || rect.height < 0)
+		{
+			throw std::runtime_error("Impossible rectangle dimensions");
+		}
+		
     }
     else
     {
