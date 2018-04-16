@@ -9,10 +9,12 @@ typedef int pos;
 
 enum rotation
 {
+    min = 0,
     rotated_0 = 0,
     rotated_90 = 1,
     rotated_180 = 2,
-    rotated_270 = 3
+    rotated_270 = 3,
+    max = 3
 };
 
 struct rectangle 
@@ -24,19 +26,22 @@ struct rectangle
 
     bool blockage = false;
     bool flipped = 0;
-    rotation rot = rotated_0;    
+    rotation rot = rotated_0;
+
+    bool placed() const;
+    bool contains_x(pos to_check) const;
+    bool contains_y(pos to_check) const;
+    bool intersects(const rectangle &rect) const;
+
+    bool leftOf(const rectangle &rect) const;
+    bool beneath(const rectangle &rect) const;
+    bool operator<(const rectangle &rect) const;
+    
+    void rotate(rotation rotate);
 };
 
 std::ostream &operator<< (std::ostream &out, const rectangle &rect);
 
 std::istream &operator>> (std::istream &in, rectangle &rect);
-
-int main()
-{
-    rectangle r;
-
-    std::cin >> r;
-    std::cout << r;
-}
 
 #endif // RECTANGLE_H
