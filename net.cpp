@@ -11,19 +11,15 @@ std::istream &operator>> (std::istream &in, pin &p)
 
 std::istream &operator>> (std::istream &in, net &n)
 {
-    //TODO: Maybe we want to assert, that the stream starts with Net
-    //TODO: Maybe we want to clear n.pin_list
+    if(in.peek() != 'N')
+    {
+        in.setstate(std::ios_base::failbit);
+        return in;
+    }
 
     // We need to ignore the Net string
     in.ignore(3, ' ');
-
     in >> n.net_weight;
-
-    if(!in)
-    {
-        // There is nothing left to read
-        return in;
-    }
     
     pin p;
     while(in >> p)
