@@ -12,6 +12,8 @@
 
 typedef unsigned char px;
 
+constexpr int MAX_FILE_SIZE = 10000000; //10 MB
+
 constexpr int HEADER_SIZE = 54;
 
 constexpr std::array<px, HEADER_SIZE> BMP_HEADER = {/* Bitmapfileheader */
@@ -69,7 +71,6 @@ struct bitmap
     const int height;
     std::vector<pixel> data;
     const int scaling;
-    bool written = false;
 
     bitmap(std::string filename_,
         int width_,
@@ -78,9 +79,12 @@ struct bitmap
         filename(filename_),
         width(width_*scaling_),
         height(height_*scaling_),
-        data(height*width),
         scaling(scaling_)
-    {}
+    {
+        // I really don't want to plot inst10 by mistake
+        assert(height * width * 3 <= MAX_FILE_SIZE);
+        data = std::vector<pixel>(height*width);
+    }
 
     void put_pixel(int x, int y, const pixel &p);
     void write();
