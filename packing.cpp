@@ -1,7 +1,7 @@
 #include "packing.h"
 
 /**
-* Determins wether the placement contains a collision (and thus is invalid).
+* Determines wether the placement contains a collision (and thus is invalid).
 * true means that no collision was found
 */
 bool packing::is_valid()
@@ -52,6 +52,7 @@ bool packing::is_valid()
 }
 
 //TODO: Very naive dummy implementation so far
+// Seems fine to me. This is literally what we shall do.
 std::ostream &operator<<(std::ostream & out, const packing & pack)
 {
 	for (auto rect : pack.rect_list)
@@ -62,14 +63,42 @@ std::ostream &operator<<(std::ostream & out, const packing & pack)
 	return out;
 }
 
-std::istream &operator>>(std::istream & in, packing & pack)
+void packing::read_sol_from(std::string filename)
 {
-	rectangle rect;
-	while (in >> rect)
+	std::ifstream file(filename);
+
+	if(!file)
 	{
-		rect.id = pack.rect_list.size();
-		pack.rect_list.push_back(rect);
+		throw std::runtime_error("File not " + filename + " not found.");
 	}
 
-	return in;
+	rectangle rect;
+	while (file >> rect)
+	{
+		rect.id = rect_list.size();
+		rect_list.push_back(rect);
+	}
+}
+
+void packing::read_inst_from(std::string filename)
+{
+	std::ifstream file(filename);
+
+	if(!file)
+	{
+		throw std::runtime_error("File not " + filename + " not found.");
+	}
+
+	rectangle rect;
+	while (file >> rect)
+	{
+		rect.id = rect_list.size();
+		rect_list.push_back(rect);
+	}
+
+	net n;
+	while(file >> n)
+	{
+		net_list.push_back(n);
+	}
 }
