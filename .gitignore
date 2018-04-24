@@ -36,5 +36,12 @@
 vgcore*
 /.vscode
 
+#(C)Make
+/CMakeFiles
+*.cmake
+Makefile
+CMakeCache.txt
+
+
 #Bitmaps
 *.bmp
