@@ -31,3 +31,10 @@
 *.out
 *.app
 /.vs
+
+#VS-Code spam
+vgcore*
+/.vscode
+
+#Bitmaps
+*.bmp
