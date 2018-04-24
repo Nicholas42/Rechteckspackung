@@ -175,20 +175,16 @@ std::istream &operator>> (std::istream &in, rectangle &rect)
         
         rect.width = x_max - rect.x;
         rect.height = y_max - rect.y;
-
-        // Check that xmax > xmin and ymax > ymin
-		if (rect.width < 0 || rect.height < 0)
-		{
-			throw std::runtime_error("Impossible rectangle dimensions");
-		}
-		
     }
     else
     {
         // We read a rectangle
         pos first, second;
 
-        in >> first;
+		if (!(in >> first))
+		{
+			return in;
+		}
         in >> second;
 
         // Now we check if we reached the end of the line:
@@ -224,8 +220,12 @@ std::istream &operator>> (std::istream &in, rectangle &rect)
                 rect.height = second - rect.x;
             }
         }
-
-        assert(rect.width >= 0 && rect.height >= 0);
     }
+	// Check that xmax > xmin and ymax > ymin
+	if (rect.width < 0 || rect.height < 0)
+	{
+		throw std::runtime_error("Impossible rectangle dimensions");
+	}
+
     return in;
 }
