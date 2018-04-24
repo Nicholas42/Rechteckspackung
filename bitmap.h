@@ -66,18 +66,13 @@ const pixel BLACK(0, 0, 0);
 
 struct bitmap 
 {
-    const std::string filename;
-    const int width;
-    const int height;
+    std::string filename;
+    int width;
+    int height;
     std::vector<pixel> data;
-    const int scaling;
+    int scaling;
 
-    bitmap():
-        filename(""),
-        width(-1),
-        height(-1),
-        scaling(-1)
-    {}
+    bitmap(){}
 
     bitmap(std::string filename_,
         int width_,
@@ -88,10 +83,12 @@ struct bitmap
         height(height_*scaling_),
         scaling(scaling_)
     {    
-    // I really don't want to plot inst10 by mistake
-    assert(height * width * 3 <= MAX_FILE_SIZE);
-    data = std::vector<pixel>(height*width);
+        // I really don't want to plot inst10 by mistake
+        assert(valid(width, height));
+        data = std::vector<pixel>(height*width);
     }
+
+    static bool valid(int width, int height);
 
     void put_pixel(int x, int y, const pixel &p);
     void write();

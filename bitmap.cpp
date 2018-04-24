@@ -117,3 +117,8 @@ void bitmap::fill_rectangle(int x_min, int x_max, int y_min, int y_max, pixel co
         }
     }
 }
+
+bool bitmap::valid(int width, int height)
+{
+    return height * width * 3 <= MAX_FILE_SIZE;
+}
