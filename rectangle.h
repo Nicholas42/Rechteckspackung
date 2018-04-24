@@ -3,18 +3,18 @@
 
 #include <iostream>
 #include <cassert>
+#include "net.h"
 
 
 typedef int pos;
 
 enum rotation
 {
-    min = 0,
     rotated_0 = 0,
     rotated_90 = 1,
     rotated_180 = 2,
     rotated_270 = 3,
-    max = 3
+    count = 4
 };
 
 struct rectangle 
@@ -29,6 +29,9 @@ struct rectangle
     bool flipped = 0;
     rotation rot = rotated_0;
 
+    pos x_max() const;
+    pos y_max() const;
+
     bool placed() const;
     bool contains_x(pos to_check) const;
     bool contains_y(pos to_check) const;
@@ -37,6 +40,8 @@ struct rectangle
     bool left_of(const rectangle &rect) const;
     bool beneath(const rectangle &rect) const;
     bool operator<(const rectangle &rect) const;
+
+    std::pair<pos, pos> get_pin_position(const pin &p) const;
     
     void rotate(rotation rotate);
 

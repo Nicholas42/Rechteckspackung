@@ -9,6 +9,23 @@ bool rectangle::placed() const
 }
 
 /**
+ * Returns the x-value of the rightmost edge of the rectangle.
+ * Observes rotation. Only works for already placed rectangles. 
+ */
+pos rectangle::x_max() const
+{
+    assert(placed());
+    if(rot == rotated_0 || rot == rotated_180)
+    {
+        return x + width;
+    }
+    else
+    {
+        return x +height;
+    }
+}
+
+/**
  * Checks if the rectangle contains the specified x-coordinate. 
  * Observes rotation. Only works for already placed rectangles. 
  * The right edge is not considered part of the rectangle.
@@ -16,13 +33,24 @@ bool rectangle::placed() const
 bool rectangle::contains_x(pos to_check) const
 {
     assert(placed());
+    return x <= to_check && to_check < x_max();
+}
+
+/**
+ * Returns the y-value of the uppermost edge of the rectangle.
+ * Observes rotation. Only works for already placed rectangles.
+ * The upper edge is not considered part of the rectangle.
+ */
+pos rectangle::y_max() const
+{
+    assert(placed());
     if(rot == rotated_0 || rot == rotated_180)
     {
-        return (x <= to_check) && (to_check < x + width);
+        return y + height;
     }
     else
     {
-        return (x <= to_check) && (to_check < x + height);
+        return y + width;
     }
 }
 
@@ -34,14 +62,7 @@ bool rectangle::contains_x(pos to_check) const
 bool rectangle::contains_y(pos to_check) const
 {
     assert(placed());
-    if(rot == rotated_0 || rot == rotated_180)
-    {
-        return (y <= to_check) && (to_check < y + height);
-    }
-    else
-    {
-        return (y <= to_check) && (to_check < y + width);
-    }
+    return y <= to_check && to_check < y_max();
 }
 
 /**
@@ -96,11 +117,11 @@ bool rectangle::operator<(const rectangle &rect) const
 
 /**
  * Rotates the rectangle by the passed rotation. This does NOT set the rotation but rather 
- * increment it passed rotation.
+ * increment it by the passed rotation.
  */
 void rectangle::rotate(rotation rotate)
 {
-    rot = static_cast<rotation>(rot + rotate);
+    rot = static_cast<rotation>((rot + rotate)%rotation::count);
 }
 
 /**
@@ -109,6 +130,50 @@ void rectangle::rotate(rotation rotate)
 bool rectangle::compare(const rectangle &left, const rectangle &right)
 {
     return left.left_of(right);
+}
+
+/**
+ * Returns the absolut position of a pin on this rectangle. Flipping and
+ * rotation are observed. Only works on already placed rectangles and if
+ * the pin belongs to the rectangle.
+ */
+std::pair<pos, pos> rectangle::get_pin_position(const pin &p) const
+{
+    assert(id == p.index);
+
+    pos pin_x = p.x, pin_y = p.y;
+    if(flipped)
+    {
+        pin_x = width - pin_x;
+    }
+
+    
+    pos tmp_x;
+    // This probably is faster than calculating sinus and cosinus
+    // TODO: check my formulas
+    switch(rot)
+    {
+        case rotated_0:
+            break;
+        case rotated_90:
+            tmp_x = pin_x;
+            pin_x = height - pin_y;
+            pin_y = tmp_x;
+            break;
+        case rotated_180:
+            pin_x = width - pin_x;
+            pin_y = height - pin_y;
+            break;
+        case rotated_270:
+            tmp_x = pin_x;
+            pin_x = pin_y;
+            pin_y = width - tmp_x;
+            break;
+        default:
+            assert(false);
+    }
+
+    return std::make_pair(pin_x + x, pin_y + y);
 }
 
 /**
@@ -224,6 +289,7 @@ std::istream &operator>> (std::istream &in, rectangle &rect)
 	// Check that xmax > xmin and ymax > ymin
 	if (rect.width < 0 || rect.height < 0)
 	{
+        // TODO: Maybe say what rectangle is the problem?
 		throw std::runtime_error("Impossible rectangle dimensions");
 	}
 
