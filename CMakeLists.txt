@@ -3,4 +3,4 @@ project (Rechteckspackung)
 
 set (CMAKE_CXX_STANDARD 11)
 
-add_executable(rechteckspackung.out main.cpp packing.cpp rectangle.cpp net.cpp)
+add_executable(rechteckspackung.out main.cpp packing.cpp rectangle.cpp net.cpp bitmap.cpp)
