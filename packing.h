@@ -17,6 +17,12 @@ class packing
 private:
 	std::vector<rectangle> rect_list;
 	std::vector<net> net_list;
+
+	pos x_min;
+	pos x_max;
+	pos y_min;
+	pos y_max;
+
 public:
 	bool is_valid();
 

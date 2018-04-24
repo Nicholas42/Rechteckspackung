@@ -57,12 +57,18 @@ std::ostream &operator<<(std::ostream & out, const packing & pack)
 {
 	for (auto rect : pack.rect_list)
 	{
+		assert(pack.x_min <= rect.x && pack.x_max >= rect.x_max() &&
+			   pack.y_min <= rect.y && pack.y_max >= rect.y_max());
+
 		out << rect << std::endl;
 	}
 
 	return out;
 }
 
+/**
+ * Reads solution, i.e. a list of placed rectangles.
+ */
 void packing::read_sol_from(std::string filename)
 {
 	std::ifstream file(filename);
@@ -80,6 +86,10 @@ void packing::read_sol_from(std::string filename)
 	}
 }
 
+/**
+ * Read an instance, i.e. size of the chip, a list of unplaced rectangles and blockages,
+ * and a list of nets.
+ */
 void packing::read_inst_from(std::string filename)
 {
 	std::ifstream file(filename);
@@ -87,6 +97,16 @@ void packing::read_inst_from(std::string filename)
 	if(!file)
 	{
 		throw std::runtime_error("File not " + filename + " not found.");
+	}
+
+	if(!(file >> x_min >> x_max >> y_min >> y_max))
+	{
+		throw std::runtime_error("Invalid Format in " + filename);
+	}
+
+	if(x_max < x_min || y_max < y_min)
+	{
+		throw std::runtime_error("Invalid Format in " + filename);
 	}
 
 	rectangle rect;
