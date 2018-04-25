@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include "packing.h"
+#include "bitmap.h"
 
 //packing read_interactive()
 //{
@@ -18,20 +19,12 @@
 int main(int argc, char *argv[])
 {
 	packing pack;
-	if (argc < 2)
+	pack.read_inst_from(argv[1]);
+	pack.read_sol_from(argv[2]);
+	if(pack.init_bmp())
 	{
-		std::string s;
-		std::cin >> s;
-		std::ifstream fin(s);
-		fin >> pack;
+		pack.draw_all_rectangles();
+		pack.draw_all_pins();
+		pack.write_bmp();
 	}
-	else
-	{
-		std::ifstream fin(argv[1]);
-		fin >> pack;
-	}
-
-	std::cout << pack.is_valid() << std::endl;
-	char c;
-	std::cin >> c;
 }
