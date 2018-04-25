@@ -11,12 +11,15 @@
 #include <fstream>
 #include "rectangle.h"
 #include "net.h"
+#include "bitmap.h"
 
 class packing
 {
 private:
 	std::vector<rectangle> rect_list;
 	std::vector<net> net_list;
+	bitmap bmp;
+	std::string base_filename;
 
 	pos x_min;
 	pos x_max;
@@ -28,6 +31,12 @@ public:
 
 	void read_sol_from(std::string filename);
 	void read_inst_from(std::string filename);
+
+	void draw_all_rectangles();
+	void draw_all_pins();
+	void write_bmp();
+
+	bool init_bmp();
 
 	friend std::ostream & operator<< (std::ostream &out, const packing &rect);
 };

@@ -11,14 +11,14 @@ std::istream &operator>> (std::istream &in, pin &p)
 
 std::istream &operator>> (std::istream &in, net &n)
 {
-    if(in.peek() != 'N')
+    std::string prefix;
+    in >> prefix;
+
+    if(prefix != "Net")
     {
         in.setstate(std::ios_base::failbit);
         return in;
     }
-
-    // We need to ignore the Net string
-    in.ignore(3, ' ');
     in >> n.net_weight;
     
     pin p;

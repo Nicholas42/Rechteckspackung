@@ -78,6 +78,8 @@ void packing::read_sol_from(std::string filename)
 		throw std::runtime_error("File not " + filename + " not found.");
 	}
 
+	rect_list.clear();
+
 	rectangle rect;
 	while (file >> rect)
 	{
@@ -116,9 +118,69 @@ void packing::read_inst_from(std::string filename)
 		rect_list.push_back(rect);
 	}
 
+	file.clear();
+
 	net n;
 	while(file >> n)
 	{
 		net_list.push_back(n);
+	}
+
+	base_filename = filename;
+}
+
+void packing::draw_all_rectangles()
+{
+	assert(bmp.width > -1 && bmp.height > -1);
+
+	for(auto r : rect_list)
+	{
+		bmp.draw_rectangle(r.x, r.x_max(), r.y, r.y_max(), BLACK);
+		bmp.fill_rectangle(r.x, r.x_max(), r.y, r.y_max(), GREEN);
+	}
+}
+
+void packing::draw_all_pins()
+{
+	assert(bmp.width > -1 && bmp.height > -1);
+
+	for(auto n : net_list)
+	{
+		for(auto p : n.pin_list)
+		{
+			pos x,y;
+			if(p.index == -1)
+			{
+				x = p.x;
+				y = p.y;
+			}
+			else
+			{
+				std::tie(x,y) = rect_list[p.index].get_pin_position(p);
+			}
+			bmp.draw_point(x, y, BLUE);
+		}
+	}
+}
+
+void packing::write_bmp()
+{
+	assert(bmp.width > -1 && bmp.height > -1);
+	bmp.write();
+}
+
+bool packing::init_bmp()
+{
+	const int width = x_max - x_min;
+	const int height = y_max - y_min;
+	const int scaling = std::max(std::min(1000/width, 1000/height), 1);
+	if(bitmap::valid(width, height))
+	{
+		bmp = bitmap(base_filename + ".bmp", width, height, scaling);
+		return true;
+	}
+	else
+	{
+		return false;
 	}
 }
