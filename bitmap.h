@@ -95,6 +95,7 @@ struct bitmap
 
     void draw_rectangle(int x_min, int x_max, int y_min, int y_max, pixel color);
     void fill_rectangle(int x_min, int x_max, int y_min, int y_max, pixel color);
+    void draw_point(int x, int y, pixel color);
 };
 
 std::ostream &operator<< (std::ostream &out, const pixel &p);

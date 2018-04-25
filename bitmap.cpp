@@ -118,6 +118,23 @@ void bitmap::fill_rectangle(int x_min, int x_max, int y_min, int y_max, pixel co
     }
 }
 
+/**
+ *  Draws a point. The size is more than one pixel for visibility reasons.
+ */
+void bitmap::draw_point(int x, int y, pixel color)
+{
+    x *= scaling;
+    y *= scaling;
+
+    for(int i = std::max(0, x - 3); i < std::min(width - 1, x + 3); i++)
+    {
+        for(int j = std::max(0, y - 3); j < std::min(height - 1, y + 3); j++)
+        {
+            put_pixel(i, j, color);
+        }
+    }
+}
+
 bool bitmap::valid(int width, int height)
 {
     return height * width * 3 <= MAX_FILE_SIZE;
