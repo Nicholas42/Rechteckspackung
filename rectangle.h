@@ -44,8 +44,10 @@ struct rectangle
     std::pair<pos, pos> get_pin_position(const pin &p) const;
     
     void rotate(rotation rotate);
+    rectangle intersection(const rectangle &other) const;
 
     static bool compare(const rectangle &left, const rectangle &right);
+    static bool compare1(const rectangle *left, const rectangle *right);
 };
 
 std::ostream &operator<< (std::ostream &out, const rectangle &rect);

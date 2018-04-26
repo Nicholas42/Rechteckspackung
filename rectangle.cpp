@@ -176,6 +176,17 @@ std::pair<pos, pos> rectangle::get_pin_position(const pin &p) const
     return std::make_pair(pin_x + x, pin_y + y);
 }
 
+rectangle rectangle::intersection(const rectangle &other) const
+{
+    rectangle ret;
+    ret.x = std::max(x, other.x);
+    ret.width = std::min(x_max(), other.x_max()) - ret.x;
+    ret.y = std::max(y, other.y);
+    ret.height = std::min(y_max(), other.y_max()) - ret.y;
+
+    return ret;
+}
+
 /**
  * Outputs the rectangle. Does not end the line. Only works for already placed rectangles. 
  */
