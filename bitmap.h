@@ -12,7 +12,7 @@
 
 typedef unsigned char px;
 
-constexpr int MAX_FILE_SIZE = 10000000; //10 MB
+constexpr long long int MAX_FILE_SIZE = 10000000; //10 MB
 
 constexpr int HEADER_SIZE = 54;
 
@@ -42,18 +42,18 @@ constexpr int BYTE_SIZE_POS = 2; // width * height + 54
 
 struct pixel
 {
-    px blue = 255;
-    px green = 255;
-    px red = 255;
-
-    pixel ()
-    {}
+    px blue;
+    px green;
+    px red;
 
     pixel(px blue_, px green_, px red_):
         blue(blue_),
         green(green_),
         red(red_)
         {}
+
+    pixel () : pixel(255, 255, 255)
+    {}
 };
 
 const pixel BLUE(255, 0, 0);
@@ -71,8 +71,11 @@ struct bitmap
     int height;
     std::vector<pixel> data;
     int scaling;
+    bool initialized;
 
-    bitmap(){}
+    bitmap() :
+        initialized(false)
+    {}
 
     bitmap(std::string filename_,
         int width_,
@@ -81,11 +84,12 @@ struct bitmap
         filename(filename_),
         width(width_*scaling_),
         height(height_*scaling_),
-        scaling(scaling_)
+        scaling(scaling_),
+        initialized(true)
     {    
         // I really don't want to plot inst10 by mistake
         assert(valid(width, height));
-        data = std::vector<pixel>(height*width);
+        data.resize(height*width*3, WHITE);
     }
 
     static bool valid(int width, int height);

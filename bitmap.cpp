@@ -137,5 +137,7 @@ void bitmap::draw_point(int x, int y, pixel color)
 
 bool bitmap::valid(int width, int height)
 {
-    return height * width * 3 <= MAX_FILE_SIZE;
+    long long int long_width = static_cast<long long int> (width);
+    long long int long_height = static_cast<long long int> (height);
+    return (long_height * long_width * 3) <= MAX_FILE_SIZE;
 }
