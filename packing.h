@@ -13,6 +13,14 @@
 #include "net.h"
 #include "bitmap.h"
 
+struct rect_ptr_compare
+{
+	bool operator() (rectangle *r, rectangle *l) const;
+};
+
+typedef std::set<rectangle *, rect_ptr_compare> sweepline;
+
+
 class packing
 {
 private:
@@ -27,7 +35,7 @@ private:
 	pos y_max;
 
 public:
-	bool is_valid();
+	std::pair<int, int> is_valid();
 
 	void read_sol_from(std::string filename);
 	void read_inst_from(std::string filename);
