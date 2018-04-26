@@ -182,15 +182,19 @@ void packing::draw_all_pins()
 
 void packing::draw_cert(std::pair<int, int> cert)
 {
-	const rectangle r = rect_list[cert.first].intersection(rect_list[cert.second]);
-	bmp.draw_rectangle(r.x, r.x_max(), r.y, r.y_max(), BLACK);
-	bmp.fill_rectangle(r.x, r.x_max(), r.y, r.y_max(), RED);
+	if(cert.first > -1 && cert.second > -1)
+	{
+		const rectangle r = rect_list[cert.first].intersection(rect_list[cert.second]);
+		bmp.draw_rectangle(r.x, r.x_max(), r.y, r.y_max(), BLACK);
+		bmp.fill_rectangle(r.x, r.x_max(), r.y, r.y_max(), RED);
+	}
 }
 
 void packing::write_bmp()
 {
 	assert(bmp.initialized);
 	bmp.write();
+	std::cout << "Wrote bitmap to " << bmp.filename << std::endl;
 }
 
 bool packing::init_bmp()
