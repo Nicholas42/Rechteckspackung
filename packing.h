@@ -39,9 +39,11 @@ public:
 
 	void read_sol_from(std::string filename);
 	void read_inst_from(std::string filename);
+	void read_dimension_from_inst(std::string filename);
 
 	void draw_all_rectangles();
 	void draw_all_pins();
+	void draw_cert(std::pair<int, int> cert);
 	void write_bmp();
 
 	bool init_bmp();

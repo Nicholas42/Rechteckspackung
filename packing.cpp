@@ -21,7 +21,7 @@ std::pair<int, int> packing::is_valid()
 	// The sweeping line is always ordered from bottom to top
 	sweepline line;
 
-	for (auto rec : rect_list)
+	for (auto &rec : rect_list)
 	{
 		std::pair<sweepline::iterator, bool> in = line.insert(&rec);
 		assert(in.second);
@@ -36,7 +36,7 @@ std::pair<int, int> packing::is_valid()
 
 		if (it != line.begin() && rec.intersects(**std::prev(it)))
 		{
-			return std::make_pair(rec.id, (*it)->id);
+			return {rec.id, (*std::prev(it))->id};
 		}
 
 		it++;
@@ -51,12 +51,12 @@ std::pair<int, int> packing::is_valid()
 
 		if (it != line.end() && (*it)->intersects(rec))
 		{
-			return std::make_pair(rec.id, (*it)->id);
+			return {rec.id, (*it)->id};
 		}
 		// So this rectangle does not intersect with one already there, therefore, we can go on
 	}
 
-	return std::make_pair(-1, -1);
+	return {-1, -1};
 }
 
 //TODO: Very naive dummy implementation so far
@@ -97,11 +97,11 @@ void packing::read_sol_from(std::string filename)
 }
 
 /**
- * Read an instance, i.e. size of the chip, a list of unplaced rectangles and blockages,
- * and a list of nets.
+ *  Reads just the dimension from the instance file.
  */
-void packing::read_inst_from(std::string filename)
+void packing::read_dimension_from_inst(std::string filename)
 {
+	base_filename = filename;
 	std::ifstream file(filename);
 
 	if(!file)
@@ -118,6 +118,17 @@ void packing::read_inst_from(std::string filename)
 	{
 		throw std::runtime_error("Invalid Format in " + filename);
 	}
+}
+
+/**
+ * Read an instance, i.e. size of the chip, a list of unplaced rectangles and blockages,
+ * and a list of nets.
+ */
+void packing::read_inst_from(std::string filename)
+{
+	read_dimension_from_inst(filename);
+
+	std::ifstream file(filename);
 
 	rectangle rect;
 	while (file >> rect)
@@ -133,13 +144,11 @@ void packing::read_inst_from(std::string filename)
 	{
 		net_list.push_back(n);
 	}
-
-	base_filename = filename;
 }
 
 void packing::draw_all_rectangles()
 {
-	assert(bmp.width > -1 && bmp.height > -1);
+	assert(bmp.initialized);
 
 	for(auto r : rect_list)
 	{
@@ -150,7 +159,7 @@ void packing::draw_all_rectangles()
 
 void packing::draw_all_pins()
 {
-	assert(bmp.width > -1 && bmp.height > -1);
+	assert(bmp.initialized);
 
 	for(auto n : net_list)
 	{
@@ -171,9 +180,16 @@ void packing::draw_all_pins()
 	}
 }
 
+void packing::draw_cert(std::pair<int, int> cert)
+{
+	const rectangle r = rect_list[cert.first].intersection(rect_list[cert.second]);
+	bmp.draw_rectangle(r.x, r.x_max(), r.y, r.y_max(), BLACK);
+	bmp.fill_rectangle(r.x, r.x_max(), r.y, r.y_max(), RED);
+}
+
 void packing::write_bmp()
 {
-	assert(bmp.width > -1 && bmp.height > -1);
+	assert(bmp.initialized);
 	bmp.write();
 }
 
@@ -182,13 +198,10 @@ bool packing::init_bmp()
 	const int width = x_max - x_min;
 	const int height = y_max - y_min;
 	const int scaling = std::max(std::min(1000/width, 1000/height), 1);
-	if(bitmap::valid(width, height))
+	if(bitmap::valid(width * scaling, height * scaling))
 	{
 		bmp = bitmap(base_filename + ".bmp", width, height, scaling);
-		return true;
 	}
-	else
-	{
-		return false;
-	}
+
+	return bmp.initialized;
 }
