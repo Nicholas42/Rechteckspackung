@@ -8,13 +8,14 @@
 #include <fstream>
 #include <array>
 #include <cassert>
+#include <cstdint>
 #include "rectangle.h"
 
 typedef unsigned char px;
 
-constexpr long long int MAX_FILE_SIZE = 10000000; //10 MB
+constexpr int64_t MAX_FILE_SIZE = 10000000; //10 MB
 
-constexpr int HEADER_SIZE = 54;
+constexpr int32_t HEADER_SIZE = 54;
 
 constexpr std::array<px, HEADER_SIZE> BMP_HEADER = {/* Bitmapfileheader */
                      'B', 'M', //ASCII "BM"
@@ -35,10 +36,10 @@ constexpr std::array<px, HEADER_SIZE> BMP_HEADER = {/* Bitmapfileheader */
                      0, 0, 0, 0 //only if color palette used
 };
 
-constexpr int WIDTH_POS = 18; // width
-constexpr int HEIGHT_POS = 22; // height
-constexpr int DATA_SIZE_POS = 34; // width * height
-constexpr int BYTE_SIZE_POS = 2; // width * height + 54
+constexpr int32_t WIDTH_POS = 18; // width
+constexpr int32_t HEIGHT_POS = 22; // height
+constexpr int32_t DATA_SIZE_POS = 34; // width * height
+constexpr int32_t BYTE_SIZE_POS = 2; // width * height + 54
 
 struct pixel
 {
@@ -67,10 +68,10 @@ const pixel BLACK(0, 0, 0);
 struct bitmap 
 {
     std::string filename;
-    int width;
-    int height;
+	int32_t width;
+	int32_t height;
     std::vector<pixel> data;
-    int scaling;
+	int32_t scaling;
     bool initialized;
 
     bitmap() :
@@ -78,9 +79,9 @@ struct bitmap
     {}
 
     bitmap(std::string filename_,
-        int width_,
-        int height_,
-        int scaling_ = 1):
+		int32_t width_,
+		int32_t height_,
+		int32_t scaling_ = 1):
         filename(filename_),
         width(width_*scaling_),
         height(height_*scaling_),
@@ -92,14 +93,14 @@ struct bitmap
         data.resize(height*width*3, WHITE);
     }
 
-    static bool valid(int width, int height);
+    static bool valid(int32_t width, int32_t height);
 
-    void put_pixel(int x, int y, const pixel &p);
+    void put_pixel(int32_t x, int32_t y, const pixel &p);
     void write();
 
-    void draw_rectangle(int x_min, int x_max, int y_min, int y_max, pixel color);
-    void fill_rectangle(int x_min, int x_max, int y_min, int y_max, pixel color);
-    void draw_point(int x, int y, pixel color);
+    void draw_rectangle(int32_t x_min, int32_t x_max, int32_t y_min, int32_t y_max, pixel color);
+    void fill_rectangle(int32_t x_min, int32_t x_max, int32_t y_min, int32_t y_max, pixel color);
+    void draw_point(int32_t x, int32_t y, pixel color);
 };
 
 std::ostream &operator<< (std::ostream &out, const pixel &p);
