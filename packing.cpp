@@ -13,15 +13,17 @@ bool rect_ptr_compare::operator() (rectangle *r, rectangle *l) const
 * Gives the indices of two colliding rectangles as an certificate or (-1, -1) 
 * if there is no collision.
 */
-std::pair<int, int> packing::is_valid()
+std::pair<int, int> packing::is_valid() const
 {
+	std::vector<rectangle> rect_list_cpy(rect_list);
+
 	// We want to sweep over the rectangles from left to right
-	std::sort(rect_list.begin(), rect_list.end(), rectangle::compare);
+	std::sort(rect_list_cpy.begin(), rect_list_cpy.end(), rectangle::compare);
 
 	// The sweeping line is always ordered from bottom to top
 	sweepline line;
 
-	for (auto &rec : rect_list)
+	for (auto &rec : rect_list_cpy)
 	{
 		std::pair<sweepline::iterator, bool> in = line.insert(&rec);
 		assert(in.second);

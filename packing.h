@@ -35,7 +35,7 @@ private:
 	pos y_max;
 
 public:
-	std::pair<int, int> is_valid();
+	std::pair<int, int> is_valid() const;
 
 	void read_sol_from(std::string filename);
 	void read_inst_from(std::string filename);
