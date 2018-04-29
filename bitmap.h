@@ -57,11 +57,11 @@ struct pixel
     {}
 };
 
-const pixel BLUE(255, 0, 0);
-const pixel GREEN(0, 255, 0);
-const pixel RED(0, 0, 255);
-const pixel WHITE(255, 255, 255);
-const pixel BLACK(0, 0, 0);
+const pixel BLUE{255, 0, 0};
+const pixel GREEN{0, 255, 0};
+const pixel RED{0, 0, 255};
+const pixel WHITE{255, 255, 255};
+const pixel BLACK{0, 0, 0};
 
 
 
@@ -93,14 +93,14 @@ struct bitmap
         data.resize(height*width*3, WHITE);
     }
 
-    static bool valid(int32_t width, int32_t height);
+    static bool valid(const int32_t width, const int32_t height);
 
-    void put_pixel(int32_t x, int32_t y, const pixel &p);
+    void put_pixel(const int32_t x,const int32_t y, const pixel &p);
     void write();
 
-    void draw_rectangle(int32_t x_min, int32_t x_max, int32_t y_min, int32_t y_max, pixel color);
-    void fill_rectangle(int32_t x_min, int32_t x_max, int32_t y_min, int32_t y_max, pixel color);
-    void draw_point(int32_t x, int32_t y, pixel color);
+    void draw_rectangle(int32_t x_min, int32_t x_max, int32_t y_min, int32_t y_max, const  pixel &color);
+    void fill_rectangle(int32_t x_min, int32_t x_max, int32_t y_min, int32_t y_max, const  pixel &color);
+    void draw_point(int32_t x, int32_t y, const pixel &color);
 };
 
 std::ostream &operator<< (std::ostream &out, const pixel &p);

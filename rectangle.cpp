@@ -30,7 +30,7 @@ pos rectangle::x_max() const
  * Observes rotation. Only works for already placed rectangles. 
  * The right edge is not considered part of the rectangle.
  */
-bool rectangle::contains_x(pos to_check) const
+bool rectangle::contains_x(const pos to_check) const
 {
     assert(placed());
     return x <= to_check && to_check < x_max();
@@ -59,7 +59,7 @@ pos rectangle::y_max() const
  * Observes rotation. Only works for already placed rectangles.
  * The upper edge is not considered part of the rectangle.
  */
-bool rectangle::contains_y(pos to_check) const
+bool rectangle::contains_y(const pos to_check) const
 {
     assert(placed());
     return y <= to_check && to_check < y_max();
@@ -119,7 +119,7 @@ bool rectangle::operator<(const rectangle &rect) const
  * Rotates the rectangle by the passed rotation. This does NOT set the rotation but rather 
  * increment it by the passed rotation.
  */
-void rectangle::rotate(rotation rotate)
+void rectangle::rotate(const rotation rotate)
 {
     rot = static_cast<rotation>((rot + rotate)%rotation::count);
 }

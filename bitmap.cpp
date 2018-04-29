@@ -12,7 +12,7 @@ std::ostream &operator<<(std::ostream &out, const pixel &p)
 /**
  * Puts the pixel p (aka the color) at position (x,y).
  */
-void bitmap::put_pixel(int32_t x, int32_t y, const pixel &p)
+void bitmap::put_pixel(const int32_t x,const int32_t y, const pixel &p)
 {
     data.at(x + y*width) = p;
 }
@@ -21,7 +21,7 @@ void bitmap::put_pixel(int32_t x, int32_t y, const pixel &p)
  * Takes an int an stores it in the passed char array. 
  * WARNING: This should probably be done better, but I don't know how.
  */
-void int_to_char_arr(px * to, int32_t from)
+void int_to_char_arr(px * to, const int32_t from)
 {
     for(size_t i = 0; i < sizeof(int32_t); i++)
     {
@@ -72,7 +72,7 @@ void bitmap::write()
  * Draws the edges of the specified rectangle with the specified color.
  * Applys scaling.
  */
-void bitmap::draw_rectangle(int32_t x_min, int32_t x_max, int32_t y_min, int32_t y_max, pixel color)
+void bitmap::draw_rectangle(int32_t x_min, int32_t x_max, int32_t y_min, int32_t y_max, const pixel &color)
 {
     assert(x_min <= x_max && y_min <= y_max);
 
@@ -97,7 +97,7 @@ void bitmap::draw_rectangle(int32_t x_min, int32_t x_max, int32_t y_min, int32_t
  * Fills the interior of the specified rectangle with the specified color.
  * Applys scaling.
  */
-void bitmap::fill_rectangle(int32_t x_min, int32_t x_max, int32_t y_min, int32_t y_max, pixel color)
+void bitmap::fill_rectangle(int32_t x_min, int32_t x_max, int32_t y_min, int32_t y_max, const pixel &color)
 {
     assert(x_min <= x_max && y_min <= y_max);
 
@@ -118,7 +118,7 @@ void bitmap::fill_rectangle(int32_t x_min, int32_t x_max, int32_t y_min, int32_t
 /**
  *  Draws a point. The size is more than one pixel for visibility reasons.
  */
-void bitmap::draw_point(int32_t x, int32_t y, pixel color)
+void bitmap::draw_point(int32_t x, int32_t y, const pixel &color)
 {
     x *= scaling;
     y *= scaling;
@@ -132,9 +132,9 @@ void bitmap::draw_point(int32_t x, int32_t y, pixel color)
     }
 }
 
-bool bitmap::valid(int32_t width, int32_t height)
+bool bitmap::valid(const int32_t width,const  int32_t height)
 {
-    int64_t long_width = static_cast<int64_t> (width);
-	int64_t long_height = static_cast<int64_t> (height);
-    return (long_height * long_width * 3) <= MAX_FILE_SIZE;
+    const int64_t long_width = static_cast<const int64_t> (width);
+	const int64_t long_height = static_cast<const int64_t> (height);
+    return (long_height * long_width) <= MAX_FILE_SIZE/3;
 }

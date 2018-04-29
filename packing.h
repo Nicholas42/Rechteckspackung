@@ -37,13 +37,13 @@ private:
 public:
 	std::pair<int, int> is_valid() const;
 
-	void read_sol_from(std::string filename);
-	void read_inst_from(std::string filename);
-	void read_dimension_from_inst(std::string filename);
+	void read_sol_from(const std::string filename);
+	void read_inst_from(const std::string filename);
+	void read_dimension_from_inst(const std::string filename);
 
 	void draw_all_rectangles();
 	void draw_all_pins();
-	void draw_cert(std::pair<int, int> cert);
+	void draw_cert(const std::pair<int, int> cert);
 	void write_bmp();
 
 	bool init_bmp();

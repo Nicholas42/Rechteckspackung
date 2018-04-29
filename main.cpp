@@ -4,18 +4,6 @@
 #include "packing.h"
 #include "bitmap.h"
 
-//packing read_interactive()
-//{
-//	packing pack;
-//	std::cout << "Interactive mode..." << std::endl;
-//	if (!(std::cin >> pack))
-//	{
-//		std::cout << "Invalid format!";
-//	}
-//
-//	return pack;
-//}
-
 int main(int argc, char *argv[])
 {
 	packing pack;

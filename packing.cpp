@@ -79,7 +79,7 @@ std::ostream &operator<<(std::ostream & out, const packing & pack)
 /**
  * Reads solution, i.e. a list of placed rectangles.
  */
-void packing::read_sol_from(std::string filename)
+void packing::read_sol_from(const std::string filename)
 {
 	std::ifstream file(filename);
 
@@ -101,7 +101,7 @@ void packing::read_sol_from(std::string filename)
 /**
  *  Reads just the dimension from the instance file.
  */
-void packing::read_dimension_from_inst(std::string filename)
+void packing::read_dimension_from_inst(const std::string filename)
 {
 	base_filename = filename;
 	std::ifstream file(filename);
@@ -126,7 +126,7 @@ void packing::read_dimension_from_inst(std::string filename)
  * Read an instance, i.e. size of the chip, a list of unplaced rectangles and blockages,
  * and a list of nets.
  */
-void packing::read_inst_from(std::string filename)
+void packing::read_inst_from(const std::string filename)
 {
 	read_dimension_from_inst(filename);
 
@@ -182,7 +182,7 @@ void packing::draw_all_pins()
 	}
 }
 
-void packing::draw_cert(std::pair<int, int> cert)
+void packing::draw_cert(const std::pair<int, int> cert)
 {
 	if(cert.first > -1 && cert.second > -1)
 	{
