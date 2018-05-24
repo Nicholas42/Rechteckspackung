@@ -63,9 +63,7 @@ const pixel RED{0, 0, 255};
 const pixel WHITE{255, 255, 255};
 const pixel BLACK{0, 0, 0};
 
-
-
-struct bitmap 
+struct bitmap
 {
     std::string filename;
 	int32_t width;
@@ -73,24 +71,23 @@ struct bitmap
     std::vector<pixel> data;
 	int32_t scaling;
     bool initialized;
+    int32_t effective_width;
 
     bitmap() :
         initialized(false)
     {}
 
-    bitmap(std::string filename_,
-		int32_t width_,
-		int32_t height_,
-		int32_t scaling_ = 1):
-        filename(filename_),
-        width(width_*scaling_),
-        height(height_*scaling_),
-        scaling(scaling_),
-        initialized(true)
-    {    
+    bitmap(std::string &&filename_, int32_t width_, int32_t height_, int32_t scaling_ = 1) :
+            filename(filename_),
+            width(width_ * scaling_),
+            height(height_ * scaling_ + 1),
+            scaling(scaling_),
+            initialized(true),
+            effective_width((width + 4) / 4 * 4)
+    {
         // I really don't want to plot inst10 by mistake
         assert(valid(width, height));
-        data.resize(height*width*3, WHITE);
+        data.resize(height * effective_width * 3, WHITE);
     }
 
     static bool valid(const int32_t width, const int32_t height);

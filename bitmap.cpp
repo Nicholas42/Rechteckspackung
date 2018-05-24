@@ -14,7 +14,7 @@ std::ostream &operator<<(std::ostream &out, const pixel &p)
  */
 void bitmap::put_pixel(const int32_t x,const int32_t y, const pixel &p)
 {
-    data.at(x + y*width) = p;
+    data.at(x + y * effective_width) = p;
 }
 
 /**
@@ -38,12 +38,10 @@ void bitmap::write()
     // Start: BMP Magic
 
     // BMP need a line width divisible by 4.
-    const int32_t extrabytes = (4 - ((width * 3) % 4))%4;
-    const pixel empty{0,0,0};
-    const int32_t size_data = width * height * 3 + height * extrabytes;
+    const int32_t size_data = data.size();
     const int32_t size_all = size_data + sizeof(header);
-    
-    int_to_char_arr(header.data() + WIDTH_POS, width);
+
+    int_to_char_arr(header.data() + WIDTH_POS, effective_width);
     int_to_char_arr(header.data() + HEIGHT_POS, height);
     int_to_char_arr(header.data() + DATA_SIZE_POS, size_data);
     int_to_char_arr(header.data() + BYTE_SIZE_POS, size_all);
@@ -55,15 +53,11 @@ void bitmap::write()
 
     // End: BMP Magic
 
-    for(int32_t i = 0; i < height; i++)
+    for (int32_t i = 0; i < height; i++)
     {
-        for(int32_t j = i*width; j < (i+1)*width; j++)
+        for (int32_t j = i * effective_width; j < (i + 1) * effective_width; j++)
         {
             file << data.at(j);
-        }
-        for(int32_t k = 0; k < extrabytes; k++)
-        {
-            file << empty;
         }
     }
 }
