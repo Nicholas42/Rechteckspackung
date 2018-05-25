@@ -26,22 +26,29 @@ int main(int argc, char *argv[])
 		std::cout << "Rectangles " << cert.first << " and " << cert.second << " intersect." << std::endl;
 	}
 
-	if(argc > 3 && strcmp(argv[3], "-b") == 0)
-	{
-		if(pack.init_bmp())
-		{
-			pack.draw_all_rectangles();
-			pack.draw_all_pins();
-			pack.draw_cert(cert);
-			pack.write_bmp();
-		}
-		else
-		{
-			std::cout << "Instance is too big for a bitmap." << std::endl;
-		}
-	}
-	else
-	{
-		std::cout << "Run again with flag -b for a beautiful bitmap" << std::endl;
-	}
+    auto list = pack.to_sequence_pair();
+    auto i = list.first.begin();
+    auto j = list.second.begin();
+
+    for (; i != list.first.end() && j != list.second.end(); i++, j++)
+    {
+        std::cout << *i << " " << *j << std::endl;
+    }
+
+    if (argc > 3 && strcmp(argv[3], "-b") == 0)
+    {
+        if (pack.init_bmp())
+        {
+            pack.draw_all_rectangles();
+            pack.draw_all_pins();
+            pack.draw_cert(cert);
+            pack.write_bmp();
+        } else
+        {
+            std::cout << "Instance is too big for a bitmap." << std::endl;
+        }
+    } else
+    {
+        std::cout << "Run again with flag -b for a beautiful bitmap" << std::endl;
+    }
 }

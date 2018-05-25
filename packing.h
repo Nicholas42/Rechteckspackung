@@ -3,12 +3,14 @@
 
 #include <vector>
 #include <set>
+#include <list>
 #include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <memory>
 #include <cctype>
 #include <fstream>
+#include <numeric>
 #include "rectangle.h"
 #include "net.h"
 #include "bitmap.h"
@@ -18,8 +20,14 @@ struct rect_ptr_compare
 	bool operator() (rectangle *r, rectangle *l) const;
 };
 
-typedef std::set<rectangle *, rect_ptr_compare> sweepline;
+struct rect_ind_compare
+{
+    const std::vector<rectangle> &elements;
 
+    bool operator()(size_t first, size_t second) const;
+};
+
+using sweepline = std::set<rectangle *, rect_ptr_compare>;
 
 class packing
 {
@@ -37,9 +45,13 @@ private:
 public:
 	std::pair<int, int> is_valid() const;
 
-	void read_sol_from(const std::string filename);
-	void read_inst_from(const std::string filename);
-	void read_dimension_from_inst(const std::string filename);
+    std::pair<std::list<size_t>, std::list<size_t>> to_sequence_pair() const;
+
+    void read_sol_from(const std::string filename);
+
+    void read_inst_from(const std::string filename);
+
+    void read_dimension_from_inst(const std::string filename);
 
 	void draw_all_rectangles();
 	void draw_all_pins();

@@ -8,6 +8,96 @@ bool rect_ptr_compare::operator() (rectangle *r, rectangle *l) const
 	return (*r) < (*l);
 }
 
+bool rect_ind_compare::operator()(size_t first, size_t second) const
+{
+    return elements[first] < elements[second];
+}
+
+/**
+* Determines wether the placement contains a collision (and thus is invalid).
+* Gives the indices of two colliding rectangles as an certificate or (-1, -1)
+* if there is no collision.
+*/
+std::pair<std::list<size_t>, std::list<size_t>> packing::to_sequence_pair() const
+{
+    std::list<size_t> up_list;
+    std::list<size_t> down_list;
+    std::vector<std::list<size_t>::iterator> up_pos(rect_list.size(), up_list.end());
+    std::vector<std::list<size_t>::iterator> down_pos(rect_list.size(), down_list.end());
+
+    std::vector<size_t> indices(rect_list.size());
+    std::iota(indices.begin(), indices.end(), 0);
+
+    // We want to sweep over the rectangles from left to right
+    std::sort(indices.begin(), indices.end(), [this](size_t first, size_t second)
+    {
+        return rectangle::compare(rect_list[first], rect_list[second]);
+    });
+
+    // The sweeping line is always ordered from bottom to top
+    //TODO compare
+    std::set<size_t, rect_ind_compare> line(rect_ind_compare{rect_list});
+
+    for (auto &i : indices)
+    {
+        const rectangle &rec = rect_list[i];
+
+        auto in = line.insert(i);
+        assert(in.second);
+
+        auto it = in.first;
+
+        // First we want to find the next rectangle below which is still active
+        if (it != line.begin() && rect_list[*std::prev(it)].contains_y(rec.y))
+        {
+            // rec is before the previous in the sp
+            if (rect_list[*std::prev(it)].contains_x(rec.x))
+            {
+                throw std::runtime_error("Packing is invalid, impossible to find sequence pair");
+            }
+            // TODO: insert before.
+            up_pos[i] = up_list.insert(up_pos[*std::prev(it)], i);
+            line.erase(std::prev(it));
+        } else
+        {
+            //TODO insert after
+            if (it == line.begin())
+            {
+                up_list.push_front(i);
+                up_pos[i] = up_list.begin();
+            } else
+            {
+                up_pos[i] = up_list.insert(std::next(up_pos[*std::prev(it)]), i);
+            }
+        }
+
+        it++;
+        // Since this does not intersect our rectangle we can go on to the rectangles above
+        while (it != line.end() && rec.contains_y(rect_list[*it].y))
+        {
+            // This looks pretty different than the other direction, due to
+            // a) line.end() points behind the end of line
+            // b) line.erase returns an iterator pointing on the element behind the deleted one
+
+            if (rect_list[*it].contains_x(rec.x))
+            {
+                throw std::runtime_error("Packing is invalid, impossible to find sequence pair");
+            }
+            it = line.erase(it);
+        }
+
+        if (it == line.end())
+        {
+            down_pos[i] = down_list.insert(down_list.end(), i);
+        } else
+        {
+            down_pos[i] = down_list.insert(down_pos[*it], i);
+        }
+        // So this rectangle does not intersect with one already there, therefore, we can go on
+    }
+    return std::make_pair(up_list, down_list);
+}
+
 /**
 * Determines wether the placement contains a collision (and thus is invalid).
 * Gives the indices of two colliding rectangles as an certificate or (-1, -1) 
