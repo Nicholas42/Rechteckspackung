@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <cassert>
-#include <algorithm>
+#include <tuple> // tie
 #include "net.h"
 #include "common.h"
 
@@ -23,6 +23,11 @@ struct rectangle
     pos x_max() const;
     pos y_max() const;
 
+    pos get_dimension(dimension dim) const;
+
+    pos get_pos(dimension dim) const;
+    pos get_max(dimension dim) const;
+
     bool placed() const;
     bool contains_x(const pos to_check) const;
     bool contains_y(const pos to_check) const;
@@ -32,7 +37,9 @@ struct rectangle
     bool beneath(const rectangle &rect) const;
     bool operator<(const rectangle &rect) const;
 
-    std::pair<pos, pos> get_pin_position(const pin &p) const;
+    pos get_relative_pin_position(const pin &p, dimension dim) const;
+    std::pair<pos, pos> get_relative_pin_position(const pin &p) const;
+    std::pair<pos, pos> get_absolute_pin_position(const pin &p) const;
     
     void rotate(const rotation rotate);
     rectangle intersection(const rectangle &other) const;

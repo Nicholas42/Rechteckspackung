@@ -301,3 +301,68 @@ bool packing::init_bmp()
 
 	return bmp.initialized;
 }
+
+//TODO: maybe rename
+rectangle &packing::get_rect(size_t index)
+{
+    return rect_list.at(index);
+}
+
+size_t packing::get_num_rects() const
+{
+    return rect_list.size();
+}
+
+size_t packing::get_num_nets() const
+{
+    return net_list.size();
+}
+
+pos packing::get_x_min() const
+{
+    return x_min;
+}
+
+pos packing::get_x_max() const
+{
+    return x_max;
+}
+
+pos packing::get_y_min() const
+{
+    return y_min;
+}
+
+pos packing::get_y_max() const
+{
+    return y_max;
+}
+
+net &packing::get_net(size_t index)
+{
+    return net_list.at(index);
+}
+
+pos packing::get_max_pos(dimension dim) const
+{
+    if(dim == dimension::x)
+    {
+        return get_x_max();
+    }
+    else
+    {
+        return get_y_max();
+    }
+}
+
+pos packing::get_min_pos(dimension dim) const
+{
+    if(dim == dimension::x)
+    {
+        return get_x_min();
+    }
+    else
+    {
+        return get_y_min();
+    }
+}

@@ -51,3 +51,16 @@ std::ostream &operator<< (std::ostream &out, const net &n)
 
     return out;
 }
+
+pos pin::get_pos(dimension dim) const
+{
+    switch (dim)
+    {
+        case dimension::x :
+            return x;
+        case dimension::y :
+            return y;
+        default:
+            assert(false);
+    }
+}

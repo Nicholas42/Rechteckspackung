@@ -13,6 +13,8 @@ struct pin
     pos y;
 
     int index; // index of the corresponding rectangle, -1 if fixed pin
+
+    pos get_pos(dimension dim) const;
 };
 
 struct net 

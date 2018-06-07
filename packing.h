@@ -45,7 +45,21 @@ private:
     pos y_max;
 
 public:
-	std::pair<int, int> is_valid() const;
+
+    pos get_x_min() const;
+    pos get_x_max() const;
+    pos get_y_min() const;
+    pos get_y_max() const;
+    pos get_max_pos(dimension dim) const;
+    pos get_min_pos(dimension dim) const;
+
+    rectangle &get_rect(size_t index);
+    net &get_net(size_t index);
+    size_t get_num_rects() const;
+    size_t get_num_nets() const;
+
+
+    std::pair<int, int> is_valid() const;
 
     std::pair<std::list<size_t>, std::list<size_t>> to_sequence_pair() const;
 

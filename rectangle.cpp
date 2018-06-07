@@ -18,8 +18,7 @@ pos rectangle::x_max() const
     if (rot == rotation::rotated_0 || rot == rotation::rotated_180)
     {
         return x + width;
-    }
-    else
+    } else
     {
         return x + height;
     }
@@ -47,8 +46,7 @@ pos rectangle::y_max() const
     if (rot == rotation::rotated_0 || rot == rotation::rotated_180)
     {
         return y + height;
-    }
-    else
+    } else
     {
         return y + width;
     }
@@ -108,8 +106,7 @@ bool rectangle::operator<(const rectangle &rect) const
     if (y == rect.y)
     {
         return id < rect.id;
-    }
-    else
+    } else
     {
         return beneath(rect);
     }
@@ -133,11 +130,13 @@ bool rectangle::compare(const rectangle &left, const rectangle &right)
 }
 
 /**
- * Returns the absolut position of a pin on this rectangle. Flipping and
- * rotation are observed. Only works on already placed rectangles and if
- * the pin belongs to the rectangle.
+ * Returns the relative position of a pin on this rectangle. Flipping and
+ * rotation are observed. Only works if the pin belongs to the rectangle.
+ * The rectangle does not need to be already placed.
+ * @param p The pin which position shall be returned. Has to be on this rectangle.
+ * @return The relative position of the pin as a pair of pos.
  */
-std::pair<pos, pos> rectangle::get_pin_position(const pin &p) const
+std::pair<pos, pos> rectangle::get_relative_pin_position(const pin &p) const
 {
     assert(id == p.index);
 
@@ -172,7 +171,7 @@ std::pair<pos, pos> rectangle::get_pin_position(const pin &p) const
             assert(false);
     }
 
-    return std::make_pair(pin_x + x, pin_y + y);
+    return std::make_pair(pin_x, pin_y);
 }
 
 rectangle rectangle::intersection(const rectangle &other) const
@@ -184,6 +183,113 @@ rectangle rectangle::intersection(const rectangle &other) const
     ret.height = std::min(y_max(), other.y_max()) - ret.y;
 
     return ret;
+}
+
+/**
+ * Returns the absolute position of a pin on this rectangle. Flipping and
+ * rotation are observed. Only works on already placed rectangles and if
+ * the pin belongs to the rectangle.
+ * @param p The pin which position shall be returned. Has to be on this rectangle.
+ * @return The absolute position of the pin as a pair of pos.
+ */
+std::pair<pos, pos> rectangle::get_absolute_pin_position(const pin &p) const
+{
+    assert(placed());
+    pos pin_x, pin_y;
+    std::tie(pin_x, pin_y) = get_relative_pin_position(p);
+    return std::make_pair(pin_x + x, pin_y + y);
+}
+
+/**
+ * Returns the relative position of a pin on this rectangle in the given
+ * dimension. Flipping and rotation are observed. Only works on already
+ * placed rectangles and if the pin belongs to the rectangle.
+ * @param p The pin which position shall be returned. Has to be on this rectangle.
+ * @param dim The dimension of the position to return.
+ * @return The relative position of the pin in this dimension.
+ */
+pos rectangle::get_relative_pin_position(const pin &p, dimension dim) const
+{
+    switch(dim)
+    {
+        case dimension::x :
+            return get_relative_pin_position(p).first;
+        case dimension::y :
+            return get_relative_pin_position(p).second;
+        default:
+            assert(false);
+    }
+}
+
+/**
+ * Getter for position in specified dimension. Only works on already placed rectangles.
+ * @param dim The dimension of the position to return
+ * @return The position of the rectangle in dimension dim
+ */
+pos rectangle::get_pos(dimension dim) const
+{
+    switch (dim)
+    {
+        case dimension::x :
+            return x;
+        case dimension::y :
+            return y;
+        default:
+            assert(false);
+    }
+}
+
+/**
+ * Getter for the right or upper boundary of the rectangle. Only works on already placed rectangles.
+ * Observes rotation.
+ * @param dim The dimension of the boundary to return
+ * @return Either the right or the upper boundary
+ */
+pos rectangle::get_max(dimension dim) const
+{
+    switch (dim)
+    {
+        case dimension::x :
+            return x_max();
+        case dimension::y :
+            return y_max();
+        default:
+            assert(false);
+    }
+}
+
+/**
+ * Returns dimension in the given dimension (I think this is semantically correct).
+ * Observes rotation. Rectangle does not need to be placed.
+ * @param dim The dimension of the dimension to return
+ * @return Either width or height
+ */
+pos rectangle::get_dimension(dimension dim) const
+{
+    // This is really verbose... Alternative: dim == x xor rotation = 0 or 180 returns height
+    switch (dim)
+    {
+        case dimension::x :
+            if(rot == rotation::rotated_0 || rot == rotation::rotated_180)
+            {
+                return width;
+            }
+            else
+            {
+                return height;
+            }
+        case dimension::y :
+            if(rot == rotation::rotated_0 || rot == rotation::rotated_180)
+            {
+                return height;
+            }
+            else
+            {
+                return width;
+            }
+        default:
+            assert(false);
+    }
 }
 
 /**
@@ -202,8 +308,7 @@ std::ostream &operator<<(std::ostream &out, const rectangle &rect)
         out << rect.x + rect.width << " ";
         out << rect.y << " ";
         out << rect.y + rect.height << " ";
-    }
-    else
+    } else
     {
         // The rectangle is rotated, so height and width are interchanged
         out << rect.x + rect.height << " ";
