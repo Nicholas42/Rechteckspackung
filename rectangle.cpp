@@ -21,7 +21,7 @@ pos rectangle::x_max() const
     }
     else
     {
-        return x +height;
+        return x + height;
     }
 }
 
@@ -75,7 +75,7 @@ bool rectangle::intersects(const rectangle &rect) const
     assert(placed() && rect.placed());
 
     return (contains_x(rect.x) || rect.contains_x(x)) &&
-            (contains_y(rect.y) || rect.contains_y(y));
+           (contains_y(rect.y) || rect.contains_y(y));
 }
 
 /**
@@ -105,7 +105,7 @@ bool rectangle::beneath(const rectangle &rect) const
  */
 bool rectangle::operator<(const rectangle &rect) const
 {
-    if(y == rect.y)
+    if (y == rect.y)
     {
         return id < rect.id;
     }
@@ -142,12 +142,11 @@ std::pair<pos, pos> rectangle::get_pin_position(const pin &p) const
     assert(id == p.index);
 
     pos pin_x = p.x, pin_y = p.y;
-    if(flipped)
+    if (flipped)
     {
         pin_x = width - pin_x;
     }
 
-    
     pos tmp_x;
     // This probably is faster than calculating sinus and cosinus
     // TODO: check my formulas
@@ -191,9 +190,9 @@ rectangle rectangle::intersection(const rectangle &other) const
  * Outputs the rectangle. Does not end the line. Only works for already placed rectangles. 
  */
 std::ostream &operator<<(std::ostream &out, const rectangle &rect)
-{    
+{
     // Assert that rectangle is already placed
-    assert(rect.placed()); 
+    assert(rect.placed());
 
     out << rect.x << " ";
 
@@ -221,65 +220,63 @@ std::ostream &operator<<(std::ostream &out, const rectangle &rect)
 /**
  * Reads a rotation.
  */
-std::istream &operator>> (std::istream &in, rotation &rot)
+std::istream &operator>>(std::istream &in, rotation &rot)
 {
     int temp;
     in >> temp;
 
     rot = static_cast<rotation>(temp);
-    
+
     return in;
 }
 
 /**
  * Reads a rectangle, works for blockages and rectangles (unplaced and placed).
  */
-std::istream &operator>> (std::istream &in, rectangle &rect)
+std::istream &operator>>(std::istream &in, rectangle &rect)
 {
-    if(in.peek() == 'B')
+    if (in.peek() == 'B')
     {
         // We read a blockage
         rect.blockage = true;
         in.ignore();
-        
+
         pos x_max = 0;
         pos y_max = 0;
         in >> rect.x;
         in >> x_max;
         in >> rect.y;
         in >> y_max;
-        
+
         rect.width = x_max - rect.x;
         rect.height = y_max - rect.y;
-    }
-    else
+    } else
     {
         // We read a rectangle
         pos first, second;
 
-		if (!(in >> first))
-		{
-			return in;
-		}
+        if (!(in >> first))
+        {
+            return in;
+        }
         in >> second;
 
         // Now we check if we reached the end of the line:
-        if(in.peek() == '\n')
+        if (in.peek() == '\n')
         {
             // So we read width and height of an unplaced rectangle
             rect.width = first;
             rect.height = second;
-        }
-        else
+        } else
         {
             // So we are reading a placed rectangle
             rect.x = first;
 
             pos y_max;
 
-            in >>  rect.y;
+            in >> rect.y;
             in >> y_max;
-            
+
             in >> rect.flipped;
             in >> rect.rot;
 
@@ -288,8 +285,7 @@ std::istream &operator>> (std::istream &in, rectangle &rect)
                 // The rectangle is not rotated
                 rect.width = second - rect.x;
                 rect.height = y_max - rect.y;
-            }
-            else
+            } else
             {
                 // The rectangle is rotated, so height and width are interchanged
                 rect.width = y_max - rect.y;
@@ -297,12 +293,12 @@ std::istream &operator>> (std::istream &in, rectangle &rect)
             }
         }
     }
-	// Check that xmax > xmin and ymax > ymin
-	if (rect.width < 0 || rect.height < 0)
-	{
+    // Check that xmax > xmin and ymax > ymin
+    if (rect.width < 0 || rect.height < 0)
+    {
         // TODO: Maybe say what rectangle is the problem?
-		throw std::runtime_error("Impossible rectangle dimensions");
-	}
+        throw std::runtime_error("Impossible rectangle dimensions");
+    }
 
     return in;
 }

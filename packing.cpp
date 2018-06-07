@@ -265,7 +265,7 @@ void packing::draw_all_pins()
 			}
 			else
 			{
-				std::tie(x,y) = rect_list[p.index].get_pin_position(p);
+				std::tie(x,y) = rect_list[p.index].get_absolute_pin_position(p);
 			}
 			bmp.draw_point(x, y, BLUE);
 		}

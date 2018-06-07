@@ -1,30 +1,27 @@
 #include <iostream>
 #include <fstream>
-#include <string>
 #include "packing.h"
-#include "bitmap.h"
 
 int main(int argc, char *argv[])
 {
-	packing pack;
-	if(argc < 3)
-	{
-		throw std::runtime_error("Insufficient arguments. Usage: ./programname instance_file solution_file");
-	}
+    packing pack;
+    if (argc < 3)
+    {
+        throw std::runtime_error("Insufficient arguments. Usage: ./programname instance_file solution_file");
+    }
 
-	pack.read_dimension_from_inst(argv[1]);
-	pack.read_sol_from(argv[2]);
+    pack.read_dimension_from_inst(argv[1]);
+    pack.read_sol_from(argv[2]);
 
-	std::pair<int, int> cert = pack.is_valid();
+    std::pair<int, int> cert = pack.is_valid();
 
-	if(cert.first == -1)
-	{
-		std::cout << "No intersections found." << std::endl;
-	}
-	else
-	{
-		std::cout << "Rectangles " << cert.first << " and " << cert.second << " intersect." << std::endl;
-	}
+    if (cert.first == -1)
+    {
+        std::cout << "No intersections found." << std::endl;
+    } else
+    {
+        std::cout << "Rectangles " << cert.first << " and " << cert.second << " intersect." << std::endl;
+    }
 
     auto list = pack.to_sequence_pair();
     auto i = list.first.begin();

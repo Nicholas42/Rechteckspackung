@@ -37,7 +37,7 @@ class graph
 public:
     static graph make_graph();
 
-    void augpath(path p, weight w = 0);
+    void augpath(const path &p, weight w = 0);
     weight potential_cost(const edge &e) const;
     void compute_min_flow();
 
