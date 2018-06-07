@@ -5,18 +5,8 @@
 #include <cassert>
 #include <algorithm>
 #include "net.h"
+#include "common.h"
 
-
-typedef int pos;
-
-enum rotation
-{
-    rotated_0 = 0,
-    rotated_90 = 1,
-    rotated_180 = 2,
-    rotated_270 = 3,
-    count = 4
-};
 
 struct rectangle 
 {
@@ -28,7 +18,7 @@ struct rectangle
 
     bool blockage = false;
     bool flipped = false;
-    rotation rot = rotated_0;
+    rotation rot = rotation::rotated_0;
 
     pos x_max() const;
     pos y_max() const;

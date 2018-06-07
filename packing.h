@@ -11,6 +11,8 @@
 #include <cctype>
 #include <fstream>
 #include <numeric>
+#include <tuple> // tie
+#include "common.h"
 #include "rectangle.h"
 #include "net.h"
 #include "bitmap.h"

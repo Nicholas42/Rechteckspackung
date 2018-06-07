@@ -5,10 +5,7 @@
 #include <vector>
 #include <cassert>
 #include <string>
-
-typedef int pos;
-typedef int weight;
-//TODO: move typedefs to some overinclude
+#include "common.h"
 
 struct pin 
 {

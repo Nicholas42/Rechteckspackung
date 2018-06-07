@@ -15,7 +15,7 @@ bool rectangle::placed() const
 pos rectangle::x_max() const
 {
     assert(placed());
-    if(rot == rotated_0 || rot == rotated_180)
+    if (rot == rotation::rotated_0 || rot == rotation::rotated_180)
     {
         return x + width;
     }
@@ -44,7 +44,7 @@ bool rectangle::contains_x(const pos to_check) const
 pos rectangle::y_max() const
 {
     assert(placed());
-    if(rot == rotated_0 || rot == rotated_180)
+    if (rot == rotation::rotated_0 || rot == rotation::rotated_180)
     {
         return y + height;
     }
@@ -121,7 +121,7 @@ bool rectangle::operator<(const rectangle &rect) const
  */
 void rectangle::rotate(const rotation rotate)
 {
-    rot = static_cast<rotation>((rot + rotate)%rotation::count);
+    rot = static_cast<rotation>(((int) rot + (int) rotate) % (int) rotation::count);
 }
 
 /**
@@ -151,20 +151,20 @@ std::pair<pos, pos> rectangle::get_pin_position(const pin &p) const
     pos tmp_x;
     // This probably is faster than calculating sinus and cosinus
     // TODO: check my formulas
-    switch(rot)
+    switch (rot)
     {
-        case rotated_0:
+        case rotation::rotated_0:
             break;
-        case rotated_90:
+        case rotation::rotated_90:
             tmp_x = pin_x;
             pin_x = height - pin_y;
             pin_y = tmp_x;
             break;
-        case rotated_180:
+        case rotation::rotated_180:
             pin_x = width - pin_x;
             pin_y = height - pin_y;
             break;
-        case rotated_270:
+        case rotation::rotated_270:
             tmp_x = pin_x;
             pin_x = pin_y;
             pin_y = width - tmp_x;
@@ -197,7 +197,7 @@ std::ostream &operator<<(std::ostream &out, const rectangle &rect)
 
     out << rect.x << " ";
 
-    if(rect.rot == rotated_0 || rect.rot == rotated_180)
+    if (rect.rot == rotation::rotated_0 || rect.rot == rotation::rotated_180)
     {
         // The rectangle is not rotated
         out << rect.x + rect.width << " ";
@@ -213,7 +213,7 @@ std::ostream &operator<<(std::ostream &out, const rectangle &rect)
     }
 
     out << rect.flipped << " ";
-    out << rect.rot;
+    out << (int) rect.rot;
 
     return out;
 }
@@ -283,7 +283,7 @@ std::istream &operator>> (std::istream &in, rectangle &rect)
             in >> rect.flipped;
             in >> rect.rot;
 
-            if(rect.rot == rotated_0 || rect.rot == rotated_180)
+            if (rect.rot == rotation::rotated_0 || rect.rot == rotation::rotated_180)
             {
                 // The rectangle is not rotated
                 rect.width = second - rect.x;

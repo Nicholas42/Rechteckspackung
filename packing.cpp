@@ -18,7 +18,7 @@ bool rect_ind_compare::operator()(size_t first, size_t second) const
 * Gives the indices of two colliding rectangles as an certificate or (-1, -1)
 * if there is no collision.
 */
-std::pair<std::list<size_t>, std::list<size_t>> packing::to_sequence_pair() const
+sequence_pair packing::to_sequence_pair() const
 {
     std::list<size_t> up_list;
     std::list<size_t> down_list;

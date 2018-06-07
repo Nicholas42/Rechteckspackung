@@ -6,8 +6,11 @@
 #include <cassert>
 #include <limits>
 #include <algorithm> //min_element
+#include "packing.h"
+#include "common.h"
 
-using weight = int;
+static constexpr size_t _invalid_index = std::numeric_limits<size_t>::max();
+static constexpr  weight _invalid_cost = std::numeric_limits<weight>::max();
 
 
 // TODO: one could save memory by putting everything short of id and reverse in vector
@@ -44,9 +47,6 @@ private:
     std::vector<weight > _flow;
     path compute_shortest_path(size_t from);
     void compute_starting_potential();
-
-    constexpr size_t _invalid_index = std::numeric_limits<size_t>::max();
-    constexpr  weight _invalid_cost = std::numeric_limits<weight>::max();
 };
 
 #endif //RECHTECKSPACKUNG_MIN_COST_FLOW_H
