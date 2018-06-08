@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cassert>
 #include <tuple> // tie
+#include <algorithm>
 #include "net.h"
 #include "common.h"
 
@@ -14,7 +15,7 @@ struct rectangle
     pos y = -1;
     pos width = 0;
     pos height = 0;
-    int id;
+	int id;
 
     bool blockage = false;
     bool flipped = false;

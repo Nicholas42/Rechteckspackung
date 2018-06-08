@@ -20,10 +20,9 @@ bool rect_ind_compare::operator()(size_t first, size_t second) const
 */
 sequence_pair packing::to_sequence_pair() const
 {
-    std::list<size_t> up_list;
-    std::list<size_t> down_list;
-    std::vector<std::list<size_t>::iterator> up_pos(rect_list.size(), up_list.end());
-    std::vector<std::list<size_t>::iterator> down_pos(rect_list.size(), down_list.end());
+	sequence_pair seq_pair;
+    std::vector<std::list<size_t>::iterator> up_pos(rect_list.size(), seq_pair.positive_locus.end());
+    std::vector<std::list<size_t>::iterator> down_pos(rect_list.size(), seq_pair.negative_locus.end());
 
     std::vector<size_t> indices(rect_list.size());
     std::iota(indices.begin(), indices.end(), 0);
@@ -56,18 +55,18 @@ sequence_pair packing::to_sequence_pair() const
                 throw std::runtime_error("Packing is invalid, impossible to find sequence pair");
             }
             // TODO: insert before.
-            up_pos[i] = up_list.insert(up_pos[*std::prev(it)], i);
+            up_pos[i] = seq_pair.positive_locus.insert(up_pos[*std::prev(it)], i);
             line.erase(std::prev(it));
         } else
         {
             //TODO insert after
             if (it == line.begin())
             {
-                up_list.push_front(i);
-                up_pos[i] = up_list.begin();
+                seq_pair.positive_locus.push_front(i);
+                up_pos[i] = seq_pair.positive_locus.begin();
             } else
             {
-                up_pos[i] = up_list.insert(std::next(up_pos[*std::prev(it)]), i);
+                up_pos[i] = seq_pair.positive_locus.insert(std::next(up_pos[*std::prev(it)]), i);
             }
         }
 
@@ -88,14 +87,14 @@ sequence_pair packing::to_sequence_pair() const
 
         if (it == line.end())
         {
-            down_pos[i] = down_list.insert(down_list.end(), i);
+            down_pos[i] = seq_pair.negative_locus.insert(seq_pair.negative_locus.end(), i);
         } else
         {
-            down_pos[i] = down_list.insert(down_pos[*it], i);
+            down_pos[i] = seq_pair.negative_locus.insert(down_pos[*it], i);
         }
         // So this rectangle does not intersect with one already there, therefore, we can go on
     }
-    return std::make_pair(up_list, down_list);
+    return seq_pair;
 }
 
 /**

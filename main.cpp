@@ -24,10 +24,10 @@ int main(int argc, char *argv[])
     }
 
     auto list = pack.to_sequence_pair();
-    auto i = list.first.begin();
-    auto j = list.second.begin();
+    auto i = list.positive_locus.begin();
+    auto j = list.negative_locus.begin();
 
-    for (; i != list.first.end() && j != list.second.end(); i++, j++)
+    for (; i != list.positive_locus.end() && j != list.negative_locus.end(); i++, j++)
     {
         std::cout << *i << " " << *j << std::endl;
     }

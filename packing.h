@@ -16,6 +16,7 @@
 #include "rectangle.h"
 #include "net.h"
 #include "bitmap.h"
+#include "sequence_pair.h"
 
 struct rect_ptr_compare
 {
@@ -61,7 +62,7 @@ public:
 
     std::pair<int, int> is_valid() const;
 
-    std::pair<std::list<size_t>, std::list<size_t>> to_sequence_pair() const;
+    sequence_pair to_sequence_pair() const;
 
     void read_sol_from(const std::string filename);
 

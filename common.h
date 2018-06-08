@@ -8,7 +8,6 @@
 
 using pos = int;
 using weight = int;
-using sequence_pair = std::pair<std::list<size_t>, std::list<size_t>>;
 
 enum class rotation
 {
