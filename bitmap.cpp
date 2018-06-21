@@ -66,24 +66,15 @@ void bitmap::write()
  * Draws the edges of the specified rectangle with the specified color.
  * Applys scaling.
  */
-void bitmap::draw_rectangle(int32_t x_min, int32_t x_max, int32_t y_min, int32_t y_max, const pixel &color)
+void bitmap::draw_rectangle(const rectangle &rect, const pixel &color)
 {
-    assert(x_min <= x_max && y_min <= y_max);
-
-    x_min *= scaling;
-    x_max *= scaling;
-    y_min *= scaling;
-    y_max *= scaling;
-
-    for(int32_t i = x_min; i <= x_max; i++)
+    for (dimension dim : all_dimensions)
     {
-        put_pixel(i, y_min, color);
-        put_pixel(i, y_max, color);
-    }
-    for(int32_t i = y_min; i <= y_max; i++)
-    {
-        put_pixel(x_min, i, color);
-        put_pixel(x_max, i, color);
+        for (int32_t i = scaling * rect.get_pos(dim, false); i <= rect.get_max(dim); ++i)
+        {
+            put_pixel(i, rect.get_pos(dim, true) * scaling, color);
+            put_pixel(i, rect.get_max(dim, true) * scaling, color);
+        }
     }
 }
 
@@ -91,18 +82,11 @@ void bitmap::draw_rectangle(int32_t x_min, int32_t x_max, int32_t y_min, int32_t
  * Fills the interior of the specified rectangle with the specified color.
  * Applys scaling.
  */
-void bitmap::fill_rectangle(int32_t x_min, int32_t x_max, int32_t y_min, int32_t y_max, const pixel &color)
+void bitmap::fill_rectangle(const rectangle &rect, const pixel &color)
 {
-    assert(x_min <= x_max && y_min <= y_max);
-
-    x_min *= scaling;
-    x_max *= scaling;
-    y_min *= scaling;
-    y_max *= scaling;
-
-    for(int32_t x = x_min + 1; x < x_max; x++)
+    for (int32_t x = rect.base.x * scaling + 1; x < rect.get_max(dimension::x) * scaling; x++)
     {
-        for(int32_t y = y_min + 1; y < y_max; y++)
+        for (int32_t y = rect.base.y * scaling + 1; y < rect.get_max(dimension::y) * scaling; y++)
         {
             put_pixel(x, y, color);
         }
@@ -112,10 +96,11 @@ void bitmap::fill_rectangle(int32_t x_min, int32_t x_max, int32_t y_min, int32_t
 /**
  *  Draws a point. The size is more than one pixel for visibility reasons.
  */
-void bitmap::draw_point(int32_t x, int32_t y, const pixel &color)
+void bitmap::draw_point(const point &p, const pixel &color)
 {
-    x *= scaling;
-    y *= scaling;
+    assert(p.set);
+    int32_t x = scaling * p.x;
+    int32_t y = scaling * p.y;
 
     for(int32_t i = std::max(0, x - 3); i < std::min(width - 1, x + 3); i++)
     {

@@ -5,62 +5,7 @@
  */
 bool rectangle::placed() const
 {
-    return x != -1 && y != -1;
-}
-
-/**
- * Returns the x-value of the rightmost edge of the rectangle.
- * Observes rotation. Only works for already placed rectangles. 
- */
-pos rectangle::x_max() const
-{
-    assert(placed());
-    if (rot == rotation::rotated_0 || rot == rotation::rotated_180)
-    {
-        return x + width;
-    } else
-    {
-        return x + height;
-    }
-}
-
-/**
- * Checks if the rectangle contains the specified x-coordinate. 
- * Observes rotation. Only works for already placed rectangles. 
- * The right edge is not considered part of the rectangle.
- */
-bool rectangle::contains_x(const pos to_check) const
-{
-    assert(placed());
-    return x <= to_check && to_check < x_max();
-}
-
-/**
- * Returns the y-value of the uppermost edge of the rectangle.
- * Observes rotation. Only works for already placed rectangles.
- * The upper edge is not considered part of the rectangle.
- */
-pos rectangle::y_max() const
-{
-    assert(placed());
-    if (rot == rotation::rotated_0 || rot == rotation::rotated_180)
-    {
-        return y + height;
-    } else
-    {
-        return y + width;
-    }
-}
-
-/**
- * Checks if the rectangle contains the specified y-coordinate. 
- * Observes rotation. Only works for already placed rectangles.
- * The upper edge is not considered part of the rectangle.
- */
-bool rectangle::contains_y(const pos to_check) const
-{
-    assert(placed());
-    return y <= to_check && to_check < y_max();
+    return base.set;
 }
 
 /**
@@ -72,30 +17,25 @@ bool rectangle::intersects(const rectangle &rect) const
 {
     assert(placed() && rect.placed());
 
-    return (contains_x(rect.x) || rect.contains_x(x)) &&
-           (contains_y(rect.y) || rect.contains_y(y));
+    bool ret = true;
+
+    for (dimension dim : {dimension::x, dimension::y})
+    {
+        ret &= contains(rect.get_pos(dim, false), dim) || rect.contains(get_pos(dim, false), dim);
+    }
+
+    return ret;
 }
 
 /**
  * Checks if the rectangle is left of the passed rectangle. 
  * The relevant data is the position of the base points.
  */
-bool rectangle::left_of(const rectangle &rect) const
+bool rectangle::smaller(const rectangle &rect, dimension dim) const
 {
     assert(placed() && rect.placed());
 
-    return x < rect.x;
-}
-
-/**
- * Checks if the rectangle is beneath the passed rectangle. 
- * The relevant data is the position of the base points.
- */
-bool rectangle::beneath(const rectangle &rect) const
-{
-    assert(placed() && rect.placed());
-
-    return y < rect.y;
+    return get_pos(dim, false) < rect.get_pos(dim, false);
 }
 
 /**
@@ -103,12 +43,13 @@ bool rectangle::beneath(const rectangle &rect) const
  */
 bool rectangle::operator<(const rectangle &rect) const
 {
-    if (y == rect.y)
+    if (get_pos(dimension::y, false) == rect.get_pos(dimension::y, false))
     {
         return id < rect.id;
-    } else
+    }
+    else
     {
-        return beneath(rect);
+        return smaller(rect, dimension::y);
     }
 }
 
@@ -126,7 +67,7 @@ void rectangle::rotate(const rotation rotate)
  */
 bool rectangle::compare(const rectangle &left, const rectangle &right)
 {
-    return left.left_of(right);
+    return left.smaller(right, dimension::x);
 }
 
 /**
@@ -136,14 +77,14 @@ bool rectangle::compare(const rectangle &left, const rectangle &right)
  * @param p The pin which position shall be returned. Has to be on this rectangle.
  * @return The relative position of the pin as a pair of pos.
  */
-std::pair<pos, pos> rectangle::get_relative_pin_position(const pin &p) const
+point rectangle::get_relative_pin_position(const pin &p) const
 {
     assert(id == p.index);
 
-    pos pin_x = p.x, pin_y = p.y;
+    point pin_point = base;
     if (flipped)
     {
-        pin_x = width - pin_x;
+        pin_point.x = size.x - pin_point.x;
     }
 
     pos tmp_x;
@@ -154,33 +95,35 @@ std::pair<pos, pos> rectangle::get_relative_pin_position(const pin &p) const
         case rotation::rotated_0:
             break;
         case rotation::rotated_90:
-            tmp_x = pin_x;
-            pin_x = height - pin_y;
-            pin_y = tmp_x;
+            tmp_x = pin_point.x;
+            pin_point.x = size.y - pin_point.y;
+            pin_point.y = tmp_x;
             break;
         case rotation::rotated_180:
-            pin_x = width - pin_x;
-            pin_y = height - pin_y;
+            pin_point.x = size.x - pin_point.x;
+            pin_point.y = size.y - pin_point.y;
             break;
         case rotation::rotated_270:
-            tmp_x = pin_x;
-            pin_x = pin_y;
-            pin_y = width - tmp_x;
+            tmp_x = pin_point.x;
+            pin_point.x = pin_point.y;
+            pin_point.y = size.x - tmp_x;
             break;
         default:
             assert(false);
     }
 
-    return std::make_pair(pin_x, pin_y);
+    return pin_point;
 }
 
 rectangle rectangle::intersection(const rectangle &other) const
 {
     rectangle ret;
-    ret.x = std::max(x, other.x);
-    ret.width = std::min(x_max(), other.x_max()) - ret.x;
-    ret.y = std::max(y, other.y);
-    ret.height = std::min(y_max(), other.y_max()) - ret.y;
+
+    for (dimension dim : {dimension::x, dimension::y})
+    {
+        ret.base.coord(dim) = std::max(get_pos(dim, false), other.get_pos(dim, false));
+        ret.size.coord(dim) = std::min(get_max(dim), other.get_max(dim));
+    }
 
     return ret;
 }
@@ -192,12 +135,15 @@ rectangle rectangle::intersection(const rectangle &other) const
  * @param p The pin which position shall be returned. Has to be on this rectangle.
  * @return The absolute position of the pin as a pair of pos.
  */
-std::pair<pos, pos> rectangle::get_absolute_pin_position(const pin &p) const
+point rectangle::get_absolute_pin_position(const pin &p) const
 {
     assert(placed());
-    pos pin_x, pin_y;
-    std::tie(pin_x, pin_y) = get_relative_pin_position(p);
-    return std::make_pair(pin_x + x, pin_y + y);
+    point pin_point = get_relative_pin_position(p);
+    for (dimension dim : {dimension::x, dimension::y})
+    {
+        pin_point.coord(dim) += get_pos(dim, false);
+    }
+    return pin_point;
 }
 
 /**
@@ -210,15 +156,7 @@ std::pair<pos, pos> rectangle::get_absolute_pin_position(const pin &p) const
  */
 pos rectangle::get_relative_pin_position(const pin &p, dimension dim) const
 {
-    switch(dim)
-    {
-        case dimension::x :
-            return get_relative_pin_position(p).first;
-        case dimension::y :
-            return get_relative_pin_position(p).second;
-        default:
-            assert(false);
-    }
+    return get_relative_pin_position(p).coord(dim);
 }
 
 /**
@@ -226,36 +164,10 @@ pos rectangle::get_relative_pin_position(const pin &p, dimension dim) const
  * @param dim The dimension of the position to return
  * @return The position of the rectangle in dimension dim
  */
-pos rectangle::get_pos(dimension dim) const
+pos rectangle::get_pos(dimension dim, bool other) const
 {
-    switch (dim)
-    {
-        case dimension::x :
-            return x;
-        case dimension::y :
-            return y;
-        default:
-            assert(false);
-    }
-}
-
-/**
- * Getter for the right or upper boundary of the rectangle. Only works on already placed rectangles.
- * Observes rotation.
- * @param dim The dimension of the boundary to return
- * @return Either the right or the upper boundary
- */
-pos rectangle::get_max(dimension dim) const
-{
-    switch (dim)
-    {
-        case dimension::x :
-            return x_max();
-        case dimension::y :
-            return y_max();
-        default:
-            assert(false);
-    }
+    assert(placed());
+    return base.coord(dim, other);
 }
 
 /**
@@ -266,30 +178,60 @@ pos rectangle::get_max(dimension dim) const
  */
 pos rectangle::get_dimension(dimension dim) const
 {
-    // This is really verbose... Alternative: dim == x xor rotation = 0 or 180 returns height
-    switch (dim)
+    return size.coord(dim, rotated());
+}
+
+pos rectangle::get_max(dimension dim, bool other) const
+{
+    assert(placed());
+    return base.coord(dim, other) + size.coord(dim, rotated() ^ other);
+}
+
+bool rectangle::contains(const pos to_check, dimension dim) const
+{
+    assert(placed());
+    return base.coord(dim) <= to_check && to_check < size.coord(dim, rotated());
+}
+
+bool rectangle::rotated() const
+{
+    return rot == rotation::rotated_90 || rot == rotation::rotated_270;
+}
+
+bool rectangle::contains_x(const pos to_check) const
+{
+    return contains(to_check, dimension::x);
+}
+
+bool rectangle::contains_y(const pos to_check) const
+{
+    return contains(to_check, dimension::y);
+}
+
+bool rectangle::contains(const point p) const
+{
+    for (dimension dim : all_dimensions)
     {
-        case dimension::x :
-            if(rot == rotation::rotated_0 || rot == rotation::rotated_180)
-            {
-                return width;
-            }
-            else
-            {
-                return height;
-            }
-        case dimension::y :
-            if(rot == rotation::rotated_0 || rot == rotation::rotated_180)
-            {
-                return height;
-            }
-            else
-            {
-                return width;
-            }
-        default:
-            assert(false);
+        if (!contains(p.coord(dim), dim))
+        {
+            return false;
+        }
     }
+    return true;
+}
+
+point rectangle::get_max_point() const
+{
+    assert(placed());
+
+    point p;
+    for (dimension dim: all_dimensions)
+    {
+        p.coord(dim) = get_pos(dim, false) + get_max(dim);
+    }
+
+    p.set = true;
+    return p;
 }
 
 /**
@@ -300,20 +242,9 @@ std::ostream &operator<<(std::ostream &out, const rectangle &rect)
     // Assert that rectangle is already placed
     assert(rect.placed());
 
-    out << rect.x << " ";
-
-    if (rect.rot == rotation::rotated_0 || rect.rot == rotation::rotated_180)
+    for (dimension dim : all_dimensions)
     {
-        // The rectangle is not rotated
-        out << rect.x + rect.width << " ";
-        out << rect.y << " ";
-        out << rect.y + rect.height << " ";
-    } else
-    {
-        // The rectangle is rotated, so height and width are interchanged
-        out << rect.x + rect.height << " ";
-        out << rect.y << " ";
-        out << rect.y + rect.width << " ";
+        out << rect.get_pos(dim, false) << " " << rect.get_dimension(dim) << " ";
     }
 
     out << rect.flipped << " ";
@@ -346,64 +277,71 @@ std::istream &operator>>(std::istream &in, rectangle &rect)
         rect.blockage = true;
         in.ignore();
 
-        pos x_max = 0;
-        pos y_max = 0;
-        in >> rect.x;
-        in >> x_max;
-        in >> rect.y;
-        in >> y_max;
+        for (dimension dim : all_dimensions)
+        {
+            in >> rect.base.coord(dim);
+            in >> rect.size.coord(dim);
 
-        rect.width = x_max - rect.x;
-        rect.height = y_max - rect.y;
-    } else
+            rect.size.coord(dim) -= rect.base.coord(dim);
+        }
+    }
+    else
     {
-        // We read a rectangle
-        pos first, second;
-
-        if (!(in >> first))
+        point p;
+        if (!(in >> p))
         {
             return in;
         }
-        in >> second;
 
         // Now we check if we reached the end of the line:
         if (in.peek() == '\n')
         {
             // So we read width and height of an unplaced rectangle
-            rect.width = first;
-            rect.height = second;
-        } else
+            rect.size = p;
+        }
+        else
         {
             // So we are reading a placed rectangle
-            rect.x = first;
+            rect.base.set = true;
+            rect.base.x = p.x;
 
             pos y_max;
 
-            in >> rect.y;
+            in >> rect.base.y;
             in >> y_max;
 
-            in >> rect.flipped;
-            in >> rect.rot;
+            rect.size.x = p.y - rect.base.y;
+            rect.size.y = y_max - rect.base.y;
 
-            if (rect.rot == rotation::rotated_0 || rect.rot == rotation::rotated_180)
+            if (!(in >> rect.flipped))
             {
-                // The rectangle is not rotated
-                rect.width = second - rect.x;
-                rect.height = y_max - rect.y;
-            } else
+                // We read the chip base rectangle
+
+            }
+            else
             {
-                // The rectangle is rotated, so height and width are interchanged
-                rect.width = y_max - rect.y;
-                rect.height = second - rect.x;
+                in >> rect.rot;
+
+                if (rect.rotated())
+                {
+                    rect.size.swap();
+                }
             }
         }
-    }
-    // Check that xmax > xmin and ymax > ymin
-    if (rect.width < 0 || rect.height < 0)
-    {
-        // TODO: Maybe say what rectangle is the problem?
-        throw std::runtime_error("Impossible rectangle dimensions");
+
+        if (rect.size.x < 0 || rect.size.y < 0)
+        {
+            throw std::runtime_error("Invalid rectangle size.");
+        }
     }
 
+    // Check that the rectangle has a positive size
+    for (dimension dim : all_dimensions)
+    {
+        if (rect.size.coord(dim) < 0)
+        {
+            throw std::runtime_error("Impossible rectangle dimensions in rectangle " + std::to_string(rect.id));
+        }
+    }
     return in;
 }

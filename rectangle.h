@@ -1,6 +1,7 @@
 #ifndef RECTANGLE_H
 #define RECTANGLE_H
 
+#include <optional>
 #include <iostream>
 #include <cassert>
 #include <tuple> // tie
@@ -11,36 +12,47 @@
 
 struct rectangle 
 {
-    pos x = -1;
-    pos y = -1;
-    pos width = 0;
-    pos height = 0;
+    // Basepoint, may be not set
+    point base;
+
+    // Point contains width as x and height as y
+    point size;
 	int id;
 
     bool blockage = false;
     bool flipped = false;
     rotation rot = rotation::rotated_0;
 
-    pos x_max() const;
-    pos y_max() const;
+    bool rotated() const;
+
+    bool contains(const point p) const;
+    bool contains(const pos to_check, dimension dim) const;
+    bool contains_x(const pos to_check) const;
+    bool contains_y(const pos to_check) const;
 
     pos get_dimension(dimension dim) const;
 
-    pos get_pos(dimension dim) const;
-    pos get_max(dimension dim) const;
+    pos get_pos(dimension dim, bool other = false) const;
+
+    /**
+    * Getter for the right or upper boundary of the rectangle. Only works on already placed rectangles.
+    * Observes rotation.
+    * @param dim The dimension of the boundary to return
+    * @return Either the right or the upper boundary
+    */
+    pos get_max(dimension dim, bool other = false) const;
+
+    point get_max_point() const;
 
     bool placed() const;
-    bool contains_x(const pos to_check) const;
-    bool contains_y(const pos to_check) const;
     bool intersects(const rectangle &rect) const;
 
-    bool left_of(const rectangle &rect) const;
-    bool beneath(const rectangle &rect) const;
+    bool smaller(const rectangle &rect, dimension dim) const;
     bool operator<(const rectangle &rect) const;
 
     pos get_relative_pin_position(const pin &p, dimension dim) const;
-    std::pair<pos, pos> get_relative_pin_position(const pin &p) const;
-    std::pair<pos, pos> get_absolute_pin_position(const pin &p) const;
+    point get_relative_pin_position(const pin &p) const;
+    point get_absolute_pin_position(const pin &p) const;
     
     void rotate(const rotation rotate);
     rectangle intersection(const rectangle &other) const;

@@ -95,9 +95,9 @@ struct bitmap
     void put_pixel(const int32_t x,const int32_t y, const pixel &p);
     void write();
 
-    void draw_rectangle(int32_t x_min, int32_t x_max, int32_t y_min, int32_t y_max, const  pixel &color);
-    void fill_rectangle(int32_t x_min, int32_t x_max, int32_t y_min, int32_t y_max, const  pixel &color);
-    void draw_point(int32_t x, int32_t y, const pixel &color);
+    void draw_rectangle(const rectangle &rect, const pixel &color);
+    void fill_rectangle(const rectangle &rect, const pixel &color);
+    void draw_point(const point &p, const pixel &color);
 };
 
 std::ostream &operator<< (std::ostream &out, const pixel &p);

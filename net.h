@@ -9,8 +9,7 @@
 
 struct pin 
 {
-    pos x;
-    pos y;
+    point position;
 
     int index; // index of the corresponding rectangle, -1 if fixed pin
 

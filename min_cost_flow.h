@@ -29,7 +29,7 @@ struct edge
 
 struct node
 {
-    node(size_t index_) : index(index_)
+    explicit node(size_t index_) : index(index_), demand(0)
     {}
 
     node(size_t index_, weight demand_) : index(index_), demand(demand_)

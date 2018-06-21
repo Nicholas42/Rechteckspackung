@@ -24,7 +24,8 @@ void graph::augpath(const path &p, weight w)
         if (e.reverse)
         {
             _flow[e.id] -= w;
-        } else
+        }
+        else
         {
             _flow[e.id] += w;
         }
@@ -45,6 +46,8 @@ weight graph::potential_cost(const edge &e) const
 
 void graph::compute_min_flow()
 {
+    compute_starting_potential();
+
     for (auto &node : _list)
     {
         while (node.demand > 0)
@@ -146,7 +149,7 @@ void graph::place(packing &pack)
     std::vector<weight> distance(_list.size(), _invalid_cost);
     std::list<size_t> queue;
     size_t cur_node = 0;
-    distance[cur_node] = pack.get_x_min();
+    distance[cur_node] = pack.get_chip_base().base.x;
     queue.push_front(cur_node);
 
     while (!queue.empty())
@@ -156,7 +159,7 @@ void graph::place(packing &pack)
 
         if (0 < cur_node && cur_node <= pack.get_num_rects())
         {
-            pack.get_rect(cur_node - 1).x = distance[cur_node];
+            pack.get_rect(cur_node - 1).base.x = distance[cur_node];
         }
 
         for (edge &cur_edge: _list[cur_node].adjacent)
@@ -181,8 +184,8 @@ graph graph::make_graph(packing &pack, dimension dim, sequence_pair sp)
     for (size_t i = 1; i <= pack.get_num_rects(); ++i)
     {
         ret._list.emplace_back(i);
-        ret.add_arc(0, i, pack.get_min_pos(dim));
-        ret.add_arc(i, 0, pack.get_rect(i - 1).get_dimension(dim) - pack.get_max_pos(dim));
+        ret.add_arc(0, i, pack.get_chip_base().get_pos(dim));
+        ret.add_arc(i, 0, pack.get_rect(i - 1).get_dimension(dim) - pack.get_chip_base().get_max(dim));
     }
 
     for (size_t i = 0; i < pack.get_num_nets(); ++i)
@@ -190,8 +193,6 @@ graph graph::make_graph(packing &pack, dimension dim, sequence_pair sp)
         ret._list.emplace_back(ret._list.size(), pack.get_net(i).net_weight);
         ret._list.emplace_back(ret._list.size(), -pack.get_net(i).net_weight);
     }
-
-    ret._potential.resize(ret._list.size(), 0);
 
     for (size_t i = 0; i < pack.get_num_nets(); ++i)
     {

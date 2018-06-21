@@ -3,6 +3,7 @@ project (Rechteckspackung)
 
 set (CMAKE_CXX_STANDARD 11)
 set (CMAKE_BUILD_TYPE Debug)
-include(Warnings.cmake) 
+include(Warnings.cmake)
 
-add_executable(rechteckspackung.out main.cpp packing.cpp rectangle.cpp net.cpp bitmap.cpp min_cost_flow.cpp common.h)
+add_custom_target(common.h)
+add_executable(rechteckspackung.out main.cpp packing.cpp rectangle.cpp net.cpp bitmap.cpp min_cost_flow.cpp)

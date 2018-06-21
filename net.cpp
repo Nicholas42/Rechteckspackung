@@ -2,10 +2,15 @@
 
 std::istream &operator>> (std::istream &in, pin &p)
 {
-    in >> p.index;
-    in >> p.x;
-    in >> p.y;
+    if (!(in >> p.index))
+    {
+        return in;
+    }
 
+    for (dimension dim : all_dimensions)
+    {
+        in >> p.position.coord(dim);
+    }
     return in;
 }
 
@@ -35,8 +40,7 @@ std::istream &operator>> (std::istream &in, net &n)
 std::ostream &operator<< (std::ostream &out, const pin &p)
 {
     out << p.index << " ";
-    out << p.x << " ";
-    out << p.y;
+    out << p.position;
 
     return out;
 }
@@ -54,13 +58,5 @@ std::ostream &operator<< (std::ostream &out, const net &n)
 
 pos pin::get_pos(dimension dim) const
 {
-    switch (dim)
-    {
-        case dimension::x :
-            return x;
-        case dimension::y :
-            return y;
-        default:
-            assert(false);
-    }
+    return position.coord(dim);
 }

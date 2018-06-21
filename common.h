@@ -20,9 +20,97 @@ enum class rotation
 
 enum class dimension
 {
+    first = 0,
     x = 0,
     y = 1,
     count = 2
 };
+
+static auto all_dimensions = {dimension::x, dimension::y};
+
+struct point
+{
+    pos x;
+    pos y;
+
+    // Sadly, std::optional is C++17, so we have to make do
+    bool set = false;
+
+    point() = default;
+
+    point(pos x_, pos y_, bool set_) : x(x_), y(y_), set(set_)
+    {}
+
+    void swap()
+    {
+        std::swap(x, y);
+    }
+
+    /**
+     * Returns the coordinate of the given dimension.
+     * @param dim The coordinate to be returned
+     * @param other Inverts the dimension (can be practical)
+     * @return x if dim is dimension::x, y if dim is dimension::y, if other is true the choice is inverted
+     */
+    const pos &coord(dimension dim, bool other = false) const
+    {
+        switch (dim)
+        {
+            case dimension::x :
+                return other ? y : x;
+            case dimension::y :
+                return other ? x : y;
+            default:
+                assert(false);
+        }
+    }
+
+    /**
+     * Returns the coordinate of the given dimension.
+     * @param dim The coordinate to be returned
+     * @param other Inverts the dimension (can be practical)
+     * @return x if dim is dimension::x, y if dim is dimension::y, if other is true the choice is inverted
+     */
+    pos &coord(dimension dim, bool other = false)
+    {
+        switch (dim)
+        {
+            case dimension::x :
+                return other ? y : x;
+            case dimension::y :
+                return other ? x : y;
+            default:
+                assert(false);
+        }
+    }
+};
+
+inline std::istream &operator>>(std::istream &in, point &p)
+{
+    for (dimension dim : all_dimensions)
+    {
+        if (!(in >> p.coord(dim)))
+        {
+            if (!p.set)
+            {
+                return in;
+            }
+            else
+            {
+                throw std::runtime_error("Invalid format for point, only one value provided.");
+            }
+        }
+
+        p.set = true;
+    }
+
+    return in;
+}
+
+inline std::ostream &operator<<(std::ostream &out, const point &p)
+{
+    out << p.x << " " << p.y;
+    return out;
+}
 
 #endif //RECHTECKSPACKUNG_COMMON_H

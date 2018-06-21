@@ -39,22 +39,14 @@ private:
     std::vector<net> net_list;
     bitmap bmp;
     std::string base_filename;
-
-    pos x_min;
-    pos x_max;
-    pos y_min;
-    pos y_max;
+    rectangle chip_base;
 
 public:
 
-    pos get_x_min() const;
-    pos get_x_max() const;
-    pos get_y_min() const;
-    pos get_y_max() const;
-    pos get_max_pos(dimension dim) const;
-    pos get_min_pos(dimension dim) const;
+    const rectangle &get_chip_base() const;
 
-    rectangle &get_rect(size_t index);
+    const rectangle &get_rect(int index) const;
+    rectangle &get_rect(int index);
     net &get_net(size_t index);
     size_t get_num_rects() const;
     size_t get_num_nets() const;
