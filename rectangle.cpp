@@ -19,7 +19,7 @@ bool rectangle::intersects(const rectangle &rect) const
 
     bool ret = true;
 
-    for (dimension dim : {dimension::x, dimension::y})
+    for (dimension dim : all_dimensions)
     {
         ret &= contains(rect.get_pos(dim, false), dim) || rect.contains(get_pos(dim, false), dim);
     }
@@ -119,7 +119,7 @@ rectangle rectangle::intersection(const rectangle &other) const
 {
     rectangle ret;
 
-    for (dimension dim : {dimension::x, dimension::y})
+    for (dimension dim : all_dimensions)
     {
         ret.base.coord(dim) = std::max(get_pos(dim, false), other.get_pos(dim, false));
         ret.size.coord(dim) = std::min(get_max(dim), other.get_max(dim));
@@ -139,7 +139,7 @@ point rectangle::get_absolute_pin_position(const pin &p) const
 {
     assert(placed());
     point pin_point = get_relative_pin_position(p);
-    for (dimension dim : {dimension::x, dimension::y})
+    for (dimension dim : all_dimensions)
     {
         pin_point.coord(dim) += get_pos(dim, false);
     }
