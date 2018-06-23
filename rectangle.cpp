@@ -1,18 +1,10 @@
 #include "rectangle.h"
 
-/**
- * Checks if the rectangle is already placed.
- */
 bool rectangle::placed() const
 {
     return base.set;
 }
 
-/**
- * Checks if the rectangle intersects with the passed rectangle. 
- * A common border does not count as intersection. Only works for
- * already placed rectangles.
- */
 bool rectangle::intersects(const rectangle &rect) const
 {
     assert(placed() && rect.placed());
@@ -21,29 +13,22 @@ bool rectangle::intersects(const rectangle &rect) const
 
     for (dimension dim : all_dimensions)
     {
-        ret &= contains(rect.get_pos(dim, false), dim) || rect.contains(get_pos(dim, false), dim);
+        ret &= contains(rect.get_pos(dim), dim) || rect.contains(get_pos(dim), dim);
     }
 
     return ret;
 }
 
-/**
- * Checks if the rectangle is left of the passed rectangle. 
- * The relevant data is the position of the base points.
- */
 bool rectangle::smaller(const rectangle &rect, dimension dim) const
 {
     assert(placed() && rect.placed());
 
-    return get_pos(dim, false) < rect.get_pos(dim, false);
+    return get_pos(dim) < rect.get_pos(dim);
 }
 
-/**
- * Standard operator used for sorting. We use vertical order as default.
- */
 bool rectangle::operator<(const rectangle &rect) const
 {
-    if (get_pos(dimension::y, false) == rect.get_pos(dimension::y, false))
+    if (get_pos(dimension::y) == rect.get_pos(dimension::y))
     {
         return id < rect.id;
     }
@@ -53,30 +38,16 @@ bool rectangle::operator<(const rectangle &rect) const
     }
 }
 
-/**
- * Rotates the rectangle by the passed rotation. This does NOT set the rotation but rather 
- * increment it by the passed rotation.
- */
 void rectangle::rotate(const rotation rotate)
 {
     rot = static_cast<rotation>(((int) rot + (int) rotate) % (int) rotation::count);
 }
 
-/**
- * A static wrapper for the left-of-comparison.
- */
 bool rectangle::compare(const rectangle &left, const rectangle &right)
 {
     return left.smaller(right, dimension::x);
 }
 
-/**
- * Returns the relative position of a pin on this rectangle. Flipping and
- * rotation are observed. Only works if the pin belongs to the rectangle.
- * The rectangle does not need to be already placed.
- * @param p The pin which position shall be returned. Has to be on this rectangle.
- * @return The relative position of the pin as a pair of pos.
- */
 point rectangle::get_relative_pin_position(const pin &p) const
 {
     assert(id == p.index);
@@ -121,61 +92,35 @@ rectangle rectangle::intersection(const rectangle &other) const
 
     for (dimension dim : all_dimensions)
     {
-        ret.base.coord(dim) = std::max(get_pos(dim, false), other.get_pos(dim, false));
+        ret.base.coord(dim) = std::max(get_pos(dim), other.get_pos(dim));
         ret.size.coord(dim) = std::min(get_max(dim), other.get_max(dim));
     }
 
     return ret;
 }
 
-/**
- * Returns the absolute position of a pin on this rectangle. Flipping and
- * rotation are observed. Only works on already placed rectangles and if
- * the pin belongs to the rectangle.
- * @param p The pin which position shall be returned. Has to be on this rectangle.
- * @return The absolute position of the pin as a pair of pos.
- */
 point rectangle::get_absolute_pin_position(const pin &p) const
 {
     assert(placed());
     point pin_point = get_relative_pin_position(p);
     for (dimension dim : all_dimensions)
     {
-        pin_point.coord(dim) += get_pos(dim, false);
+        pin_point.coord(dim) += get_pos(dim);
     }
     return pin_point;
 }
 
-/**
- * Returns the relative position of a pin on this rectangle in the given
- * dimension. Flipping and rotation are observed. Only works on already
- * placed rectangles and if the pin belongs to the rectangle.
- * @param p The pin which position shall be returned. Has to be on this rectangle.
- * @param dim The dimension of the position to return.
- * @return The relative position of the pin in this dimension.
- */
 pos rectangle::get_relative_pin_position(const pin &p, dimension dim) const
 {
     return get_relative_pin_position(p).coord(dim);
 }
 
-/**
- * Getter for position in specified dimension. Only works on already placed rectangles.
- * @param dim The dimension of the position to return
- * @return The position of the rectangle in dimension dim
- */
 pos rectangle::get_pos(dimension dim, bool other) const
 {
     assert(placed());
     return base.coord(dim, other);
 }
 
-/**
- * Returns dimension in the given dimension (I think this is semantically correct).
- * Observes rotation. Rectangle does not need to be placed.
- * @param dim The dimension of the dimension to return
- * @return Either width or height
- */
 pos rectangle::get_dimension(dimension dim) const
 {
     return size.coord(dim, rotated());
@@ -227,7 +172,7 @@ point rectangle::get_max_point() const
     point p;
     for (dimension dim: all_dimensions)
     {
-        p.coord(dim) = get_pos(dim, false) + get_max(dim);
+        p.coord(dim) = get_pos(dim) + get_max(dim);
     }
 
     p.set = true;
