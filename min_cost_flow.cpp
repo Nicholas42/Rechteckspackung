@@ -176,50 +176,78 @@ void graph::place(packing &pack)
 
 graph graph::make_graph(packing &pack, dimension dim, sequence_pair sp)
 {
-    graph ret;
+    graph ret(pack, dim);
 
     ret._list.reserve(1 + pack.get_num_rects() + 2 * pack.get_num_nets());
     ret._list.emplace_back(0);
 
-    for (size_t i = 1; i <= pack.get_num_rects(); ++i)
+    for (size_t i = 0; i < pack.get_num_rects(); ++i)
     {
-        ret._list.emplace_back(i);
-        ret.add_arc(0, i, pack.get_chip_base().get_pos(dim));
-        ret.add_arc(i, 0, pack.get_rect(i - 1).get_dimension(dim) - pack.get_chip_base().get_max(dim));
+        ret._list.emplace_back(ret.get_node_index(node_type::rect_node, i));
+        ret.add_bound_arcs(pack.get_rect(i));
     }
 
     for (size_t i = 0; i < pack.get_num_nets(); ++i)
     {
-        ret._list.emplace_back(ret._list.size(), pack.get_net(i).net_weight);
-        ret._list.emplace_back(ret._list.size(), -pack.get_net(i).net_weight);
+        ret._list.emplace_back(pack.get_net(i), ret.get_node_index(node_type::net_lower_node, i), true);
+        ret._list.emplace_back(pack.get_net(i), ret.get_node_index(node_type::net_upper_node, i), false);
     }
 
     for (size_t i = 0; i < pack.get_num_nets(); ++i)
     {
-        size_t net_id = 1 + pack.get_num_rects() + 2 * i;
         for(auto p: pack.get_net(i).pin_list)
         {
-            if(p.index == -1)
-            {
-                // The other arc should be exactly the reverse arc.
-                // TODO: check this.
-                ret.add_arc(net_id, 0, -p.get_pos(dim));
-                ret.add_arc(0, net_id, -p.get_pos(dim));
-            }
-            else
-            {
-                pos rel_pin_pos = pack.get_rect(p.index).get_relative_pin_position(p, dim);
-                ret.add_arc(net_id, p.index + 1, -rel_pin_pos);
-                ret.add_arc(p.index + 1, net_id + 1, rel_pin_pos);
-            }
+            ret.add_pin_arcs(p, i);
         }
     }
 
-    // TODO: at stuff from sequence pair...
+    // TODO: add stuff from sequence pair...
 }
 
 void graph::add_arc(size_t from, size_t to, weight cost)
 {
     _list[from].adjacent.emplace_back(from, to, _num_edges++, cost, false);
     _list[to].adjacent.emplace_back(to, from, _num_edges++, -cost, true);
+}
+
+size_t graph::get_node_index(node_type type, size_t index)
+{
+    switch(type)
+    {
+        case node_type::chip_base:
+            return 0;
+        case node_type::rect_node:
+            return 1 + index;
+        case node_type::net_lower_node:
+            return 1 + pack.get_num_rects() + 2 * index;
+        case node_type::net_upper_node:
+            return 1 + pack.get_num_rects() + 2 * index + 1;
+    }
+}
+
+void graph::add_bound_arcs(const rectangle &rect)
+{
+    size_t index = get_node_index(node_type ::rect_node, (size_t) rect.id);
+    add_arc(0, index, pack.get_chip_base().get_pos(dim));
+    add_arc(index, 0, rect.get_dimension(dim) - pack.get_chip_base().get_max(dim));
+}
+
+void graph::add_pin_arcs(const pin &p, size_t net_id)
+{
+    if(p.index == -1)
+    {
+        add_arc(get_node_index(node_type::net_lower_node, net_id), 0, -p.get_pos(dim));
+        add_arc(0, get_node_index(node_type::net_upper_node, net_id), p.get_pos(dim));
+    }
+    else
+    {
+        pos rel_pin_pos = pack.get_rect(p.index).get_relative_pin_position(p, dim);
+        add_arc(get_node_index(node_type::net_lower_node, net_id), p.index + 1, -rel_pin_pos);
+        add_arc(p.index + 1, get_node_index(node_type::net_upper_node, net_id), rel_pin_pos);
+    }
+}
+
+void graph::add_orientation_arcs(size_t smaller, size_t bigger)
+{
+    add_arc(smaller + 1, bigger + 1, pack.get_rect(smaller).get_dimension(dim));
 }

@@ -27,17 +27,38 @@ struct edge
     {}
 };
 
+enum class node_type
+{
+    chip_base = 0,
+    rect_node = 1,
+    net_lower_node = 2,
+    net_upper_node = 3
+};
+
 struct node
 {
-    explicit node(size_t index_) : index(index_), demand(0)
-    {}
-
-    node(size_t index_, weight demand_) : index(index_), demand(demand_)
-    {}
-
     size_t index;
     weight demand;
     std::list<edge> adjacent;
+    node_type type;
+
+
+    explicit node(size_t index_) :
+            index(index_),
+            demand(0),
+            type(index == 0 ? node_type::chip_base : node_type::rect_node)
+    {}
+
+    node(size_t index_, weight demand_) :
+            index(index_),
+            demand(demand_)
+    {}
+
+    node(const net& n, size_t index_, bool lower) :
+            index(index_),
+            demand(lower ? n.net_weight : -n.net_weight),
+            type(lower ? node_type::net_lower_node : node_type::net_upper_node)
+    {}
 };
 
 using adjlist = std::vector<node>;
@@ -46,6 +67,11 @@ using path = std::list<edge>;
 class graph
 {
 public:
+    graph(const packing &pack_, const dimension dim_) :
+            pack(pack_),
+            dim(dim_)
+    {}
+
     static graph make_graph(packing &pack, dimension dim, sequence_pair sp);
 
     void augpath(const path &p, weight w = 0);
@@ -54,12 +80,18 @@ public:
     void compute_final_potential();
     void place(packing &pack);
     void add_arc(size_t from, size_t to, weight cost);
+    void add_bound_arcs(const rectangle &rect);
+    void add_pin_arcs(const pin &p, size_t net_id);
+    void add_orientation_arcs(size_t smaller, size_t bigger);
+    size_t get_node_index(node_type type, size_t index);
 
 private:
     adjlist _list;
     std::vector<weight> _potential;
     std::vector<weight > _flow;
     size_t _num_edges = 0;
+    const packing &pack;
+    const dimension dim;
 
     path compute_shortest_path(size_t from);
     void compute_starting_potential();

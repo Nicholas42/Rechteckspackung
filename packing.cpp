@@ -230,6 +230,7 @@ void packing::read_inst_from(const std::string filename)
     net n;
     while (file >> n)
     {
+        n.index = net_list.size();
         net_list.push_back(n);
     }
 }

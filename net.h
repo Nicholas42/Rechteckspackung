@@ -20,6 +20,7 @@ struct net
 {
     weight net_weight;
     std::vector<pin> pin_list;
+    size_t index;
 };
 
 std::istream &operator>> (std::istream &in, pin &p);
