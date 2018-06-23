@@ -52,7 +52,7 @@ public:
     size_t get_num_nets() const;
 
 
-    std::pair<int, int> is_valid() const;
+    const certificate is_valid() const;
 
     sequence_pair to_sequence_pair() const;
 
@@ -64,7 +64,7 @@ public:
 
     void draw_all_rectangles();
     void draw_all_pins();
-    void draw_cert(const std::pair<int, int> cert);
+    void draw_cert(const certificate &cert);
     void write_bmp();
 
     bool init_bmp();

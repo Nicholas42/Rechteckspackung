@@ -13,9 +13,11 @@ int main(int argc, char *argv[])
     pack.read_dimension_from_inst(argv[1]);
     pack.read_sol_from(argv[2]);
 
-    std::pair<int, int> cert = pack.is_valid();
+    std::cout << pack << std::endl;
 
-    if (cert.first == -1)
+    certificate cert = pack.is_valid();
+
+    if (cert.valid)
     {
         std::cout << "No intersections found." << std::endl;
     } else
@@ -48,4 +50,6 @@ int main(int argc, char *argv[])
     {
         std::cout << "Run again with flag -b for a beautiful bitmap" << std::endl;
     }
+
+    return 0;
 }

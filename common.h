@@ -26,6 +26,23 @@ enum class dimension
     count = 2
 };
 
+struct certificate
+{
+    bool valid;
+    int first;
+    int second;
+
+    certificate() :
+            valid(true)
+    {}
+
+    certificate(int first_, int second_) :
+            valid(false),
+            first(first_),
+            second(second_)
+    {}
+};
+
 static auto all_dimensions = {dimension::x, dimension::y};
 
 struct point

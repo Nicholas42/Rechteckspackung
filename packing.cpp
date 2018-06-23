@@ -105,7 +105,7 @@ sequence_pair packing::to_sequence_pair() const
 * Gives the indices of two colliding rectangles as an certificate or (-1, -1) 
 * if there is no collision.
 */
-std::pair<int, int> packing::is_valid() const
+const certificate packing::is_valid() const
 {
     std::vector<rectangle> rect_list_cpy(rect_list);
 
@@ -130,7 +130,7 @@ std::pair<int, int> packing::is_valid() const
 
         if (it != line.begin() && rec.intersects(**std::prev(it)))
         {
-            return {rec.id, (*std::prev(it))->id};
+            return certificate(rec.id, (*std::prev(it))->id);
         }
 
         it++;
@@ -145,12 +145,12 @@ std::pair<int, int> packing::is_valid() const
 
         if (it != line.end() && (*it)->intersects(rec))
         {
-            return {rec.id, (*it)->id};
+            return certificate(rec.id, (*it)->id);
         }
         // So this rectangle does not intersect with one already there, therefore, we can go on
     }
 
-    return {-1, -1};
+    return certificate();
 }
 
 //TODO: Very naive dummy implementation so far
@@ -259,9 +259,9 @@ void packing::draw_all_pins()
     }
 }
 
-void packing::draw_cert(const std::pair<int, int> cert)
+void packing::draw_cert(const certificate &cert)
 {
-    if (cert.first > -1 && cert.second > -1)
+    if (!cert.valid)
     {
         const rectangle r = rect_list[cert.first].intersection(rect_list[cert.second]);
         bmp.draw_rectangle(r, BLACK);
