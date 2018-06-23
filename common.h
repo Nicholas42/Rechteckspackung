@@ -20,10 +20,8 @@ enum class rotation
 
 enum class dimension
 {
-    first = 0,
     x = 0,
-    y = 1,
-    count = 2
+    y = 1
 };
 
 struct certificate

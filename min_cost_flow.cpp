@@ -201,7 +201,47 @@ graph graph::make_graph(packing &pack, dimension dim, sequence_pair sp)
         }
     }
 
-    // TODO: add stuff from sequence pair...
+    std::vector<bool> smaller_neg_locus(pack.get_num_rects());
+
+    for(size_t i = 0; i < pack.get_num_rects(); ++i)
+    {
+        std::fill(smaller_neg_locus.begin(), smaller_neg_locus.end(), false);
+
+        auto first_neg = std::find(sp.negative_locus.begin(), sp.negative_locus.end(), i);
+        for(auto it = first_neg; it != sp.negative_locus.end(); it++)
+        {
+            smaller_neg_locus.at(*it) = true;
+        }
+
+        // TODO: This is shit
+        switch (dim)
+        {
+            case dimension::x:
+            {
+                auto first_pos = std::find(sp.positive_locus.begin(), sp.positive_locus.end(), i);
+                for (auto it = first_pos; it != sp.positive_locus.end(); it++)
+                {
+                    if (smaller_neg_locus.at(*it))
+                    {
+                        ret.add_orientation_arcs(i, *it);
+                    }
+                }
+                break;
+            }
+            case dimension::y:
+            {
+                auto first_pos = std::find(sp.positive_locus.rbegin(), sp.positive_locus.rend(), i);
+                for (auto it = first_pos; it != sp.positive_locus.rend(); it++)
+                {
+                    if (smaller_neg_locus.at(*it))
+                    {
+                        ret.add_orientation_arcs(i, *it);
+                    }
+                }
+                break;
+            }
+        }
+    }
 }
 
 void graph::add_arc(size_t from, size_t to, weight cost)
