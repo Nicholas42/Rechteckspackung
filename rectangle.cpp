@@ -244,7 +244,7 @@ std::ostream &operator<<(std::ostream &out, const rectangle &rect)
 
     for (dimension dim : all_dimensions)
     {
-        out << rect.get_pos(dim, false) << " " << rect.get_dimension(dim) << " ";
+        out << rect.get_pos(dim) << " " << rect.get_max(dim) << " ";
     }
 
     out << rect.flipped << " ";
@@ -310,7 +310,7 @@ std::istream &operator>>(std::istream &in, rectangle &rect)
             in >> rect.base.y;
             in >> y_max;
 
-            rect.size.x = p.y - rect.base.y;
+            rect.size.x = p.y - rect.base.x;
             rect.size.y = y_max - rect.base.y;
 
             if (!(in >> rect.flipped))

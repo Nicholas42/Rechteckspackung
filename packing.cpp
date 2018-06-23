@@ -159,8 +159,10 @@ std::ostream &operator<<(std::ostream &out, const packing &pack)
 {
     for (auto rect : pack.rect_list)
     {
-        assert(pack.chip_base.contains(rect.base) &&
-               pack.chip_base.contains(rect.get_max_point()));
+        assert(pack.chip_base.get_pos(dimension::x) <= rect.get_pos(dimension::x));
+        assert(pack.chip_base.get_max(dimension::x) >= rect.get_max(dimension::x));
+        assert(pack.chip_base.get_pos(dimension::y) <= rect.get_max(dimension::y));
+        assert(pack.chip_base.get_max(dimension::y) >= rect.get_max(dimension::y));
 
         out << rect << std::endl;
     }
