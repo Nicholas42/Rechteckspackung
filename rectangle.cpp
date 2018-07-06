@@ -220,15 +220,7 @@ std::istream &operator>>(std::istream &in, rectangle &rect)
     {
         // We read a blockage
         rect.blockage = true;
-        in.ignore();
-
-        for (dimension dim : all_dimensions)
-        {
-            in >> rect.base.coord(dim);
-            in >> rect.size.coord(dim);
-
-            rect.size.coord(dim) -= rect.base.coord(dim);
-        }
+        in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
     else
     {
@@ -241,6 +233,7 @@ std::istream &operator>>(std::istream &in, rectangle &rect)
         // Now we check if we reached the end of the line:
         if (in.peek() == '\n')
         {
+            in.ignore();
             // So we read width and height of an unplaced rectangle
             rect.size = p;
         }
@@ -258,13 +251,15 @@ std::istream &operator>>(std::istream &in, rectangle &rect)
             rect.size.x = p.y - rect.base.x;
             rect.size.y = y_max - rect.base.y;
 
-            if (!(in >> rect.flipped))
+            if (in.peek() == '\n')
             {
+                in.ignore();
                 // We read the chip base rectangle
-
+                rect.id = -1;
             }
             else
             {
+                in >> rect.flipped;
                 in >> rect.rot;
 
                 if (rect.rotated())
