@@ -30,6 +30,18 @@ struct rect_ind_compare
     bool operator()(size_t first, size_t second) const;
 };
 
+struct bounding_box
+{
+    point min;
+    point max;
+
+    pos half_circumference() const;
+
+    void add_point(const point &p);
+
+    rectangle to_rectangle() const;
+};
+
 using sweepline = std::set<rectangle *, rect_ptr_compare>;
 
 class packing
@@ -53,6 +65,7 @@ public:
 
 
     const certificate is_valid() const;
+    weight compute_netlength() const;
 
     sequence_pair to_sequence_pair() const;
 
@@ -64,6 +77,7 @@ public:
 
     void draw_all_rectangles();
     void draw_all_pins();
+    void draw_all_nets();
     void draw_cert(const certificate &cert);
     void write_bmp();
 

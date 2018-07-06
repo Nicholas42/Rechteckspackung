@@ -325,5 +325,78 @@ const rectangle &packing::get_chip_base() const
 
 rectangle &packing::get_rect(int index)
 {
-    return rect_list.at(index);
+    if (index < 0)
+    {
+        return chip_base;
+    }
+    else
+    {
+        return rect_list.at((size_t) index);
+    }
 }
+
+weight packing::compute_netlength() const
+{
+    weight ret = 0;
+    for (auto &n: net_list)
+    {
+        bounding_box b;
+        for (auto &p: n.pin_list)
+        {
+            b.add_point(get_rect(p.index).get_absolute_pin_position(p));
+        }
+
+        ret += n.net_weight * ((weight) b.half_circumference());
+    }
+
+    return ret;
+}
+
+void packing::draw_all_nets()
+{
+    for (auto const &n : net_list)
+    {
+        bounding_box b;
+        for (auto const &p : n.pin_list)
+        {
+            b.add_point(get_rect(p.index).get_absolute_pin_position(p));
+        }
+        bmp.draw_rectangle(b.to_rectangle(), RED);
+    }
+}
+
+pos bounding_box::half_circumference() const
+{
+    assert(max.set && min.set);
+    pos sum = 0;
+    for (auto dim: all_dimensions)
+    {
+        sum += max.coord(dim) - min.coord(dim);
+    }
+    return sum;
+}
+
+void bounding_box::add_point(const point &p)
+{
+    if (max.set)
+    {
+        for (auto dim: all_dimensions)
+        {
+            max.coord(dim) = std::max(p.coord(dim), max.coord(dim));
+            min.coord(dim) = std::min(p.coord(dim), min.coord(dim));
+        }
+    }
+    else
+    {
+        max = p;
+        min = p;
+        max.set = true;
+        min.set = true;
+    }
+}
+
+rectangle bounding_box::to_rectangle() const
+{
+    return {min, max};
+}
+
