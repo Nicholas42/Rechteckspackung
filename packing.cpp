@@ -380,6 +380,24 @@ void packing::draw_all_nets()
     }
 }
 
+weight packing::compute_netlength_optimal(const sequence_pair &list)
+{
+    weight value = 0;
+    for (auto dim: all_dimensions)
+    {
+        graph g = graph::make_graph(*this, dim, list);
+        if (!g.compute_min_flow())
+        {
+            return _invalid_cost;
+        }
+        value += g.place(*this);
+    }
+
+    assert(value == compute_netlength());
+
+    return value;
+}
+
 pos bounding_box::half_circumference() const
 {
     assert(max.set && min.set);

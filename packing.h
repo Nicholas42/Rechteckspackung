@@ -18,6 +18,7 @@
 #include "net.h"
 #include "bitmap.h"
 #include "sequence_pair.h"
+#include "min_cost_flow.h"
 
 struct rect_ptr_compare
 {
@@ -83,6 +84,8 @@ public:
     void write_bmp();
 
     bool init_bmp();
+
+    weight compute_netlength_optimal(const sequence_pair &list);
 
     friend std::ostream &operator<<(std::ostream &out, const packing &rect);
 };
