@@ -46,6 +46,8 @@ struct bounding_box
 
 using sweepline = std::set<rectangle *, rect_ptr_compare>;
 
+class rectangle_iterator;
+
 class packing
 {
 private:
@@ -87,7 +89,24 @@ public:
 
     weight compute_netlength_optimal(const sequence_pair &list);
 
+    rectangle_iterator get_iter();
+
     friend std::ostream &operator<<(std::ostream &out, const packing &rect);
+};
+
+class rectangle_iterator
+{
+private:
+    std::vector<rectangle> &_rect_list;
+    bool _at_end;
+public:
+    explicit rectangle_iterator (std::vector<rectangle> &rect_list_):
+            _rect_list(rect_list_),
+            _at_end(false)
+    {}
+
+    rectangle_iterator &operator++();
+    explicit operator bool() const;
 };
 
 #endif // !PACKING_H

@@ -398,6 +398,11 @@ weight packing::compute_netlength_optimal(const sequence_pair &list)
     return value;
 }
 
+rectangle_iterator packing::get_iter()
+{
+    return rectangle_iterator(rect_list);
+}
+
 pos bounding_box::half_circumference() const
 {
     assert(max.set && min.set);
@@ -433,3 +438,30 @@ rectangle bounding_box::to_rectangle() const
     return {min, max};
 }
 
+rectangle_iterator &rectangle_iterator::operator++()
+{
+    _at_end = true;
+    for (auto &rect : _rect_list)
+    {
+        rect.rotate(rotation::rotated_90);
+        if (rect.rot != rotation::rotated_0)
+        {
+            _at_end = false;
+            break;
+        }
+
+        rect.flip();
+
+        if (rect.flipped)
+        {
+            _at_end = false;
+            break;
+        }
+    }
+    return *this;
+}
+
+rectangle_iterator::operator bool() const
+{
+    return !_at_end;
+}
