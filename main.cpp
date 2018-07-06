@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
+#include "common.h"
 #include "packing.h"
+#include "min_cost_flow.h"
 
 int main(int argc, char *argv[])
 {
@@ -10,10 +12,12 @@ int main(int argc, char *argv[])
         throw std::runtime_error("Insufficient arguments. Usage: ./programname instance_file solution_file");
     }
 
-    pack.read_dimension_from_inst(argv[1]);
+    pack.read_inst_from(argv[1]);
+    /*
     pack.read_sol_from(argv[2]);
 
     std::cout << pack << std::endl;
+    std::cout << "Netlength: " << pack.compute_netlength() << std::endl;
 
     certificate cert = pack.is_valid();
 
@@ -26,6 +30,7 @@ int main(int argc, char *argv[])
     }
 
     auto list = pack.to_sequence_pair();
+    list.positive_locus.reverse();
     auto i = list.positive_locus.begin();
     auto j = list.negative_locus.begin();
 
@@ -40,6 +45,7 @@ int main(int argc, char *argv[])
         {
             pack.draw_all_rectangles();
             pack.draw_all_pins();
+            pack.draw_all_nets();
             pack.draw_cert(cert);
             pack.write_bmp();
         } else
@@ -51,5 +57,46 @@ int main(int argc, char *argv[])
         std::cout << "Run again with flag -b for a beautiful bitmap" << std::endl;
     }
 
+    std::cout << "#Nets: " << pack.get_num_nets() << "; #Rects: " << pack.get_num_rects() << std::endl;
+    for(size_t i = 0; i < pack.get_num_nets(); ++i)
+    {
+        std::cout << pack.get_net(i);
+    }
+     */
+
+    packing best_pack;
+    weight  value = std::numeric_limits<weight>::max();
+    rectangle_iterator rect_it = pack.get_iter();
+    size_t count = 0;
+
+    do
+    {
+        std::cout << "ROT:   " << (int) pack.get_rect(0).rot << std::endl;
+        sequence_pair_iterator sp_it(pack.get_num_rects());
+        do
+        {
+            weight new_value = pack.compute_netlength_optimal(*sp_it);
+            std::cout << *sp_it << std::endl;
+            std::cout << new_value << std::endl;
+            if (new_value < value)
+            {
+                best_pack = pack;
+                value = new_value;
+            }
+            std::cout << ++count << std::endl;
+        }
+        while (++sp_it);
+    } while (++rect_it);
+
+    std::cout << "Value of placement: " << best_pack.compute_netlength() << std::endl;
+
+    std::cout << best_pack;
+    if(best_pack.init_bmp())
+    {
+        best_pack.draw_all_rectangles();
+        best_pack.draw_all_pins();
+        best_pack.draw_all_nets();
+        best_pack.write_bmp();
+    }
     return 0;
 }
