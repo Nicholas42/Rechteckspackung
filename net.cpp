@@ -7,15 +7,17 @@ std::istream &operator>> (std::istream &in, pin &p)
         return in;
     }
 
-    for (dimension dim : all_dimensions)
+    if(!(in >> p.position))
     {
-        in >> p.position.coord(dim);
+        throw std::runtime_error("Invalid format for net, pin position not specified.");
     }
+
     return in;
 }
 
 std::istream &operator>> (std::istream &in, net &n)
 {
+    n.pin_list.clear();
     std::string prefix;
     in >> prefix;
 
