@@ -52,7 +52,7 @@ point rectangle::get_relative_pin_position(const pin &p) const
 {
     assert(id == p.index);
 
-    point pin_point = base;
+    point pin_point = p.position;
     if (flipped)
     {
         pin_point.x = size.x - pin_point.x;
@@ -135,7 +135,7 @@ pos rectangle::get_max(dimension dim, bool other) const
 bool rectangle::contains(const pos to_check, dimension dim) const
 {
     assert(placed());
-    return base.coord(dim) <= to_check && to_check < size.coord(dim, rotated());
+    return base.coord(dim) <= to_check && to_check < get_max(dim);
 }
 
 bool rectangle::rotated() const
