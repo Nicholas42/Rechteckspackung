@@ -70,10 +70,18 @@ void bitmap::draw_rectangle(const rectangle &rect, const pixel &color)
 {
     for (dimension dim : all_dimensions)
     {
-        for (int32_t i = scaling * rect.get_pos(dim, false); i <= rect.get_max(dim); ++i)
+        for (int32_t i = scaling * rect.get_pos(dim); i <= scaling * rect.get_max(dim); ++i)
         {
-            put_pixel(i, rect.get_pos(dim, true) * scaling, color);
-            put_pixel(i, rect.get_max(dim, true) * scaling, color);
+            if(dim == dimension::x)
+            {
+                put_pixel(i, rect.get_pos(dim, true) * scaling, color);
+                put_pixel(i, rect.get_max(dim, true) * scaling, color);
+            }
+            else
+            {
+                put_pixel(rect.get_pos(dim, true) * scaling, i, color);
+                put_pixel(rect.get_max(dim, true) * scaling, i, color);
+            }
         }
     }
 }
