@@ -146,6 +146,11 @@ struct rectangle
     void rotate(const rotation rotate);
 
     /**
+     * Flips the rectangle, i.e. inverts the flipped variable.
+     */
+    void flip();
+
+    /**
      * Returns a new rectangle that is the intersection of this rectangle with the specified rectangle.
      * Warning: May return an invalid rectangle if the rectangles do not intersect.
      * @param other The rectangle with that we want to intersect

@@ -179,6 +179,11 @@ point rectangle::get_max_point() const
     return p;
 }
 
+void rectangle::flip()
+{
+    flipped = !flipped;
+}
+
 /**
  * Outputs the rectangle. Does not end the line. Only works for already placed rectangles. 
  */
