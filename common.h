@@ -5,6 +5,9 @@
 #define RECHTECKSPACKUNG_COMMON_H
 
 #include <list>
+#include <cassert>
+#include <string>
+#include <iostream>
 
 using pos = int;
 using weight = int;
@@ -24,6 +27,19 @@ enum class dimension
     y = 1
 };
 
+static auto all_dimensions = {dimension::x, dimension::y};
+
+inline std::string to_string(dimension dim)
+{
+    switch (dim)
+    {
+        case dimension::x:
+            return "x";
+        case dimension::y:
+            return "y";
+    }
+}
+
 struct certificate
 {
     bool valid;
@@ -41,7 +57,6 @@ struct certificate
     {}
 };
 
-static auto all_dimensions = {dimension::x, dimension::y};
 
 struct point
 {
