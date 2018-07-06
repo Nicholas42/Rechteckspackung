@@ -10,18 +10,27 @@
 #include "common.h"
 
 
-struct rectangle 
+struct rectangle
 {
     // Basepoint, may be not set
     point base;
 
     // Point contains width as x and height as y
     point size;
-	int id;
+    int id = 0;
 
     bool blockage = false;
     bool flipped = false;
     rotation rot = rotation::rotated_0;
+
+    rectangle() = default;
+
+    rectangle(point min, point max) :
+            base(min),
+            size(max.x - min.x, max.y - min.y, true)
+    {
+        assert(size.x >= 0 && size.y >= 0);
+    }
 
     /**
      * Checks whether the rectangle is rotated by 90 or 270 degrees, so the width and height are interchanged
@@ -167,8 +176,8 @@ struct rectangle
     static bool compare(const rectangle &left, const rectangle &right);
 };
 
-std::ostream &operator<< (std::ostream &out, const rectangle &rect);
+std::ostream &operator<<(std::ostream &out, const rectangle &rect);
 
-std::istream &operator>> (std::istream &in, rectangle &rect);
+std::istream &operator>>(std::istream &in, rectangle &rect);
 
 #endif // RECTANGLE_H
