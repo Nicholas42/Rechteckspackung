@@ -10,6 +10,7 @@
 #include <memory>
 #include <cctype>
 #include <fstream>
+#include <sstream>
 #include <numeric>
 #include <tuple> // tie
 #include "common.h"
@@ -59,7 +60,7 @@ public:
 
     const rectangle &get_rect(int index) const;
     rectangle &get_rect(int index);
-    net &get_net(size_t index);
+    const net &get_net(size_t index) const;
     size_t get_num_rects() const;
     size_t get_num_nets() const;
 

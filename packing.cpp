@@ -157,7 +157,8 @@ const certificate packing::is_valid() const
 // Seems fine to me. This is literally what we shall do.
 std::ostream &operator<<(std::ostream &out, const packing &pack)
 {
-    for (auto rect : pack.rect_list)
+    out << "#Nets: " << pack.get_num_nets() << "; #Rects " << pack.get_num_rects() << std::endl;
+    for (auto &rect : pack.rect_list)
     {
         assert(pack.chip_base.get_pos(dimension::x) <= rect.get_pos(dimension::x));
         assert(pack.chip_base.get_max(dimension::x) >= rect.get_max(dimension::x));
@@ -165,6 +166,13 @@ std::ostream &operator<<(std::ostream &out, const packing &pack)
         assert(pack.chip_base.get_max(dimension::y) >= rect.get_max(dimension::y));
 
         out << rect << std::endl;
+    }
+    for (auto &n : pack.net_list)
+    {
+        for (auto &p : n.pin_list)
+        {
+            out << pack.get_rect(p.index).get_absolute_pin_position(p) << std::endl;
+        }
     }
 
     return out;
@@ -214,15 +222,22 @@ void packing::read_dimension_from_inst(const std::string filename)
  */
 void packing::read_inst_from(const std::string filename)
 {
-    read_dimension_from_inst(filename);
-
     std::ifstream file(filename);
+    base_filename = filename;
+
+    if (!(file >> chip_base))
+    {
+        throw std::runtime_error("File " + filename + " has invalid format.");
+    }
 
     rectangle rect;
     while (file >> rect)
     {
-        rect.id = rect_list.size();
-        rect_list.push_back(rect);
+        if (!rect.blockage)
+        {
+            rect.id = rect_list.size();
+            rect_list.push_back(rect);
+        }
     }
 
     file.clear();
@@ -313,7 +328,7 @@ size_t packing::get_num_nets() const
     return net_list.size();
 }
 
-net &packing::get_net(size_t index)
+const net &packing::get_net(size_t index) const
 {
     return net_list.at(index);
 }
