@@ -8,6 +8,7 @@
 #include <cassert>
 #include <string>
 #include <iostream>
+#include <stdexcept>
 
 using pos = int;
 using weight = int;
@@ -91,8 +92,8 @@ struct point
             case dimension::y :
                 return other ? x : y;
             default:
-                assert(false);
-        }
+				throw new std::invalid_argument("Invalid argurment: Unspecified value for dim");
+		}
     }
 
     /**
@@ -110,7 +111,7 @@ struct point
             case dimension::y :
                 return other ? x : y;
             default:
-                assert(false);
+				throw new std::invalid_argument("Invalid argurment: Unspecified value for dim");
         }
     }
 };

@@ -370,6 +370,8 @@ size_t graph::get_node_index(node_type type, size_t index)
             return 2 + _pack.get_num_rects() + 2 * index;
         case node_type::net_upper_node:
             return 2 + _pack.get_num_rects() + 2 * index + 1;
+		default:
+			throw new std::invalid_argument("Invalid argument: Unspecified value for type");
     }
 }
 
