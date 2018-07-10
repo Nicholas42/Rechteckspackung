@@ -1,7 +1,6 @@
 #ifndef RECTANGLE_H
 #define RECTANGLE_H
 
-#include <optional>
 #include <iostream>
 #include <cassert>
 #include <tuple> // tie
