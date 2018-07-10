@@ -34,6 +34,7 @@ struct edge
     }
 
     size_t other_endpoint(size_t first) const;
+    weight residual_cap(size_t from) const;
 };
 
 enum class node_type
@@ -77,7 +78,7 @@ struct node
 
     node(const net &n, size_t index_, bool lower) :
             index(index_),
-            object_index(n.index),
+            object_index((int) n.index),
             demand(lower ? n.net_weight : -n.net_weight),
             type(lower ? node_type::net_lower_node : node_type::net_upper_node)
     {}
@@ -86,7 +87,9 @@ struct node
 using adjlist = std::vector<node>;
 using path = std::list<size_t>;
 
+
 class packing;
+class sequence_pair;
 
 class graph
 {
@@ -106,7 +109,7 @@ public:
     void to_dot(std::string outfile, bool flow = false);
 
 private:
-    void augpath(path &p, weight w = 0);
+    void augment_path(path &p, weight w);
     void add_node(node &&n);
     void add_arc(size_t from, size_t to, weight cost, weight flow = 0, weight cap = _invalid_cost);
     void add_bound_arcs(const rectangle &rect);
@@ -121,7 +124,7 @@ private:
     const packing &_pack;
     const dimension _dim;
 
-    path compute_shortest_path();
+    weight compute_shortest_path(path &ret);
     bool compute_starting_potential();
 };
 

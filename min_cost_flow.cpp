@@ -1,39 +1,10 @@
 #include "min_cost_flow.h"
 
 
-void graph::augpath(path &p, weight w)
+void graph::augment_path(path &p, weight w)
 {
     assert(!p.empty());
-
-    if (w == 0)
-    {
-        w = _list.at(0).demand;
-
-        size_t last_node = 0;
-
-        for (auto edge_it : p)
-        {
-            if (_edges.at(edge_it).from != last_node)
-            {
-                w = std::min(w, _edges.at(edge_it).flow);
-            }
-            else
-            {
-                assert(_edges.at(edge_it).cap - _edges.at(edge_it).flow > 0);
-                w = std::min(w, _edges.at(edge_it).cap - _edges.at(edge_it).flow);
-            }
-
-            assert(w > 0);
-            last_node = other_endpoint(edge_it, last_node);
-        }
-
-        w = std::min(w, -_list.at(last_node).demand);
-        //std::cout << "; To: " << last_node;
-    }
-
     assert(w > 0);
-
-    //std::cout << " by " << w << std::endl;
 
     size_t last_node = 0;
     for (auto const &e: p)
@@ -75,63 +46,17 @@ weight graph::potential_cost(size_t edge_id, bool reverse) const
 
 bool graph::compute_min_flow()
 {
-    std::cout << "Computing starting potential." << std::endl;
     if(compute_starting_potential())
     {
         return false;
     }
-    /*
-    std::cout << "Potential:" << std::endl;
-    for (size_t i = 0; i < _potential.size(); ++i)
-    {
-        std::cout << i << ": " << _potential.at(i) << std::endl;
-    }
-    */
-    std::cout << "Starting succesive shortest paths." << std::endl;
 
     while (_list.at(0).demand > 0)
     {
         assert(!_list.at(0).adjacent.empty());
-        path p = compute_shortest_path();
-        augpath(p);
-    }
-
-    std::cout << "Min flow computed" << std::endl;
-    //std::cout << (*this);
-
-    std::vector<weight> potential(_list.size(), _invalid_cost);
-    potential.at(1) = 0;
-
-    for (size_t i = 0; i < _list.size(); ++i)
-    {
-        for (auto &l: _list)
-        {
-            for (auto &e: l.adjacent)
-            {
-                edge cur_edge = _edges[e];
-                if (is_allowed(cur_edge, l.index) && potential.at(cur_edge.from) < _invalid_cost &&
-                    potential.at(cur_edge.from) + cur_edge.cost < potential.at(cur_edge.to))
-                {
-                    potential.at(cur_edge.to) = potential.at(cur_edge.from) + cur_edge.cost;
-                }
-            }
-        }
-    }
-
-    /*
-    std::cout << "Potential:" << std::endl;
-    for (size_t i = 0; i < _potential.size(); ++i)
-    {
-        std::cout << i << ": " << _potential.at(i) << std::endl;
-    }
-    */
-    for(auto &edge : _edges)
-    {
-        if(edge.flow < edge.cap && potential_cost(edge.id, false) < 0)
-        {
-            std::cout << edge.from << " -> " << edge.to << std::endl;
-            throw std::runtime_error("Invalid potential.");
-        }
+        path p;
+        weight f = compute_shortest_path(p);
+        augment_path(p, f);
     }
 
     return true;
@@ -139,32 +64,30 @@ bool graph::compute_min_flow()
 
 
 // This is O(n^2)-dijkstra. It suffices for the requested runtime and right now I am to lazy for something better.
-path graph::compute_shortest_path()
+weight graph::compute_shortest_path(path &ret)
 {
     std::vector<weight> distances(_potential.size(), _invalid_cost);
     distances.at(0) = 0;
-    path ret;
+    //path ret;
     std::vector<size_t> prev_edges(_list.size());
     std::vector<bool> fix(_list.size(), false);
 
-    size_t min_index = 0;
-    do
-    {
-        fix.at(min_index) = true;
+    size_t cur_node = 0;
 
-        for (const auto &e: _list.at(min_index).adjacent)
+    while (cur_node != _invalid_index)
+    {
+        fix.at(cur_node) = true;
+
+        for (const auto &e: _list.at(cur_node).adjacent)
         {
             const edge &cur_edge = _edges.at(e);
-            if (cur_edge.from != min_index && cur_edge.flow == 0)
+            if (!is_allowed(cur_edge, cur_node))
             {
                 continue;
             }
-            if (cur_edge.from == min_index && cur_edge.flow == cur_edge.cap)
-            {
-                continue;
-            }
-            weight new_dist = distances.at(min_index) + potential_cost(e, cur_edge.from != min_index);
-            size_t neighbour = other_endpoint(e, min_index);
+
+            weight new_dist = distances.at(cur_node) + potential_cost(e, cur_edge.from != cur_node);
+            size_t neighbour = other_endpoint(e, cur_node);
 
             if (!fix.at(neighbour) && new_dist < distances.at(neighbour))
             {
@@ -173,17 +96,16 @@ path graph::compute_shortest_path()
             }
         }
 
-        min_index = _invalid_index;
+        cur_node = _invalid_index;
 
         for (size_t i = 0; i < distances.size(); ++i)
         {
-            if (!fix.at(i) && (min_index == _invalid_index || distances.at(i) < distances.at(min_index)))
+            if (!fix.at(i) && (cur_node == _invalid_index || distances.at(i) < distances.at(cur_node)))
             {
-                min_index = i;
+                cur_node = i;
             }
         }
     }
-    while (min_index != _invalid_index);
 
     size_t t = _invalid_index;
 
@@ -200,13 +122,19 @@ path graph::compute_shortest_path()
     assert(t != _invalid_index);
 
     size_t cur = t;
+    weight max_cap = -_list.at(t).demand;
     while (cur != 0)
     {
-        ret.push_front(prev_edges.at(cur));
-        cur = other_endpoint(prev_edges.at(cur), cur);
+        const edge &cur_edge = _edges.at(prev_edges.at(cur));
+        ret.push_front(cur_edge.id);
+        cur = cur_edge.other_endpoint(cur);
+        max_cap = std::min(max_cap, cur_edge.residual_cap(cur));
     }
 
-    return ret;
+    max_cap = std::min(max_cap, _list.at(0).demand);
+
+    assert(max_cap > 0);
+    return max_cap;
 }
 
 bool graph::compute_starting_potential()
@@ -232,8 +160,6 @@ bool graph::compute_starting_potential()
     return changed;
 }
 
-
-//TODO: This is bullshit; rewrite
 weight graph::place(packing &pack)
 {
     weight ret = 0;
@@ -278,8 +204,8 @@ graph graph::make_graph(packing &pack, dimension dim, sequence_pair sp)
 
     for (size_t i = 0; i < pack.get_num_rects(); ++i)
     {
-        ret.add_node(node(ret.get_node_index(node_type::rect_node, i), i, node_type::rect_node));
-        ret.add_bound_arcs(pack.get_rect(i));
+        ret.add_node(node(ret.get_node_index(node_type::rect_node, i), (int) i, node_type::rect_node));
+        ret.add_bound_arcs(pack.get_rect((int) i));
     }
 
     for (size_t i = 0; i < pack.get_num_nets(); ++i)
@@ -351,8 +277,10 @@ void graph::add_arc(size_t from, size_t to, weight cost, weight flow, weight cap
 
     from_node.adjacent.push_back(_edges.size());
     to_node.adjacent.push_back(_edges.size());
+
     from_node.demand -= flow;
     to_node.demand += flow;
+
     _edges.emplace_back(from, to, _edges.size(), cost, flow, cap);
 }
 
@@ -394,7 +322,7 @@ void graph::add_pin_arcs(const pin &p, size_t net_id, weight flow)
 void graph::add_orientation_arcs(size_t smaller, size_t bigger)
 {
     add_arc(get_node_index(node_type::rect_node, smaller), get_node_index(node_type::rect_node, bigger),
-            _pack.get_rect(smaller).get_dimension(_dim));
+            _pack.get_rect((int) smaller).get_dimension(_dim));
 }
 
 std::ostream &operator<<(std::ostream &out, const graph &g)
@@ -454,7 +382,7 @@ void graph::add_node(node &&n)
 
     if (_list.size() > 1)
     {
-        if (_list.back().demand > 0)
+        if (n.demand > 0)
         {
             add_arc(0, _list.size() - 1, 0, 0, _list.back().demand);
             _list.at(0).demand += _list.back().demand;
@@ -472,11 +400,11 @@ bool graph::is_allowed(const edge &e, size_t from) const
 {
     if (e.from != from)
     {
-        return e.flow < e.cap;
+        return e.flow > 0;
     }
     else
     {
-        return e.flow > 0;
+        return e.flow < e.cap;
     }
 }
 
@@ -485,3 +413,16 @@ size_t edge::other_endpoint(size_t first) const
     assert(first == from || first == to);
     return first != from ? from : to;
 }
+
+weight edge::residual_cap(size_t from_) const
+{
+    if(from_ == from)
+    {
+        return cap == _invalid_cost ? _invalid_cost : cap - flow;
+    }
+    else
+    {
+        return flow;
+    }
+}
+
