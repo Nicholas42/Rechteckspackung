@@ -13,6 +13,7 @@
 #include <sstream>
 #include <numeric>
 #include <tuple> // tie
+#include <stdexcept>
 #include "common.h"
 #include "rectangle.h"
 #include "net.h"
@@ -67,6 +68,7 @@ public:
     size_t get_num_rects() const;
     size_t get_num_nets() const;
 
+	void move_rect(int index, point pos);
 
     const certificate is_valid() const;
     weight compute_netlength() const;

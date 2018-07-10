@@ -328,6 +328,20 @@ size_t packing::get_num_nets() const
     return net_list.size();
 }
 
+void packing::move_rect(int index, point pos)
+{
+	if (index < 0)
+	{
+		throw new std::out_of_range("index");
+	}
+	else
+	{
+		rectangle &rect = get_rect(index);
+		rect.base = pos;
+		rect.base.set = true;
+	}
+}
+
 const net &packing::get_net(size_t index) const
 {
     return net_list.at(index);

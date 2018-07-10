@@ -5,10 +5,17 @@
 #include <numeric>
 #include <algorithm>
 #include <iostream>
+#include <vector>
+#include <map>
 #include "common.h"
+#include "packing.h"
 
 class sequence_pair
 {
+private:
+	using locusIt = std::list<size_t>::iterator;
+	std::vector<pos> sequence_pair::place_dimension(dimension dim, const locusIt x_begin, const locusIt x_end, const locusIt y_begin, const locusIt y_end, const packing& pack) const;
+
 public:
 	std::list<size_t> positive_locus, negative_locus;
 
@@ -21,6 +28,8 @@ public:
         std::iota(positive_locus.begin(), positive_locus.end(), 0);
         std::iota(negative_locus.begin(), negative_locus.end(), 0);
     }
+
+	void apply_to(packing & pack);
 };
 
 class sequence_pair_iterator
