@@ -6,4 +6,4 @@ set (CMAKE_BUILD_TYPE Debug)
 include(Warnings.cmake)
 
 add_custom_target(common.h)
-add_executable(rechteckspackung.out main.cpp packing.cpp rectangle.cpp net.cpp bitmap.cpp min_cost_flow.cpp sequence_pair.cpp)
+add_executable(rechteckspackung.out main.cpp packing.cpp rectangle.cpp net.cpp bitmap.cpp min_cost_flow.cpp sequence_pair.cpp list_wrapper.cpp)
