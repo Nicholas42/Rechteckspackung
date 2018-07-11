@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <string>
 #include <iostream>
+#include <cmath>
 #include "packing.h"
 
 class input_parser

@@ -131,6 +131,42 @@ void input_parser::optimize_bounding(packing & pack, unsigned int optimality, bo
 
 void input_parser::optimize_wirelength(packing & pack, unsigned int optimality, bool bitmap)
 {
+	packing best_pack;
+	weight best_weight = _invalid_cost;
+	rectangle_iterator rect_it = pack.get_iter(false);
 
+	while (rect_it)
+    {
+        sequence_pair_iterator all_sp(pack.get_num_rects());
+        while (all_sp)
+        {
+            weight new_weight = pack.compute_netlength_optimal(*all_sp);
+            if (new_weight < best_weight)
+            {
+                std::cout << *all_sp;
+                best_pack = pack;
+                best_weight = new_weight;
+            }
+            ++all_sp;
+        }
+        ++rect_it;
+    }
+	std::cout << "Value: " << best_weight << std::endl;
+	std::cout << best_pack;
+
+	if(bitmap)
+    {
+        if(best_pack.init_bmp())
+        {
+            best_pack.draw_all_rectangles();
+            best_pack.draw_all_nets();
+            best_pack.draw_all_pins();
+            best_pack.write_bmp();
+        }
+        else
+        {
+            std::cout << "Instance is to big for a bitmap." << std::endl;
+        }
+    }
 }
 
