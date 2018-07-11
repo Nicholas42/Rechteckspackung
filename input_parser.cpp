@@ -69,7 +69,7 @@ void input_parser::parse(int argc, char * argv[])
 		optimize_bounding(pack, optimality, bitmap);
 		return;
 	}
-	else if (get_switch(begin, end, "--wire"))
+	else
 	{
 		optimize_wirelength(pack, optimality, bitmap);
 		return;
@@ -101,6 +101,7 @@ void input_parser::optimize_bounding(packing & pack, unsigned int optimality, bo
 	pos min_area = std::numeric_limits<pos>::max();
 
 	rectangle_iterator rect_it = pack.get_iter(true);
+	size_t cnt = 1;
 	do
 	{
 		sequence_pair_iterator sp_it(pack.get_num_rects());
@@ -109,14 +110,23 @@ void input_parser::optimize_bounding(packing & pack, unsigned int optimality, bo
 			if ((*sp_it).apply_to(pack))
 			{
 				pos cur_area = pack.calculate_area();
-				if (cur_area > min_area)
+				if (cur_area < min_area)
 				{
 					best_pack = pack;
 					min_area = cur_area;
 				}
 			}
 		} while (++sp_it);
+		std::cout << "(" << cnt << "/" << std::pow(2, pack.get_num_rects()) << ")" << std::endl;
+		cnt++;
 	} while (++rect_it);
+
+	std::cout << best_pack.calculate_area() << std::endl;
+	if (bitmap && best_pack.init_bmp())
+	{
+		best_pack.draw_all_rectangles();
+		best_pack.write_bmp();
+	}
 }
 
 void input_parser::optimize_wirelength(packing & pack, unsigned int optimality, bool bitmap)

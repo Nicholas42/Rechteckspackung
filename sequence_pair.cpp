@@ -58,15 +58,15 @@ std::vector<pos> sequence_pair::place_dimension(dimension dim, const packing & p
 		size_t y_index = y_indexes[pack_index];
 		//We insert with length 0 to optimize the greatest index less than search
 		//0 is the node for no seq found so we treat the indices one-based in the context of cur_seqs
-		auto cur_node = cur_seqs.insert({ y_index + 1, 0 });
-		positions[pack_index] = (--cur_node.first)->second;
+		const auto cur_node = cur_seqs.insert({ y_index + 1, 0 }).first;
+		positions[pack_index] = std::prev(cur_node)->second;
 		pos cur_seq_length = positions[pack_index] + pack.get_rect(pack_index).get_dimension(dim);
 		cur_seqs[y_index + 1] = cur_seq_length;
 
 		//We go forward until we no longer need to delet nodes
-		while ((++cur_node.first)->second < cur_seq_length)
+		while (std::next(cur_node) != cur_seqs.end() && std::next(cur_node)->second < cur_seq_length)
 		{
-			cur_seqs.erase((++cur_node.first)->first);
+			cur_seqs.erase(std::next(cur_node)->first);
 		}
 	};
 
@@ -94,9 +94,15 @@ bool sequence_pair::apply_to(packing & pack)
 	auto x_coords = place_dimension(dimension::x, pack);
 	auto y_coords = place_dimension(dimension::y, pack);
 
+	//We are placing rectangles starting (0,0), but the placmenet area might be different
+	auto x_offset = pack.get_chip_base().get_pos(dimension::x);
+	auto y_offset = pack.get_chip_base().get_pos(dimension::y);
+
 	for (size_t i = 0; i < x_coords.size(); i++)
 	{
-		pack.move_rect(i, point(x_coords[i], y_coords[i], true));
+		pack.move_rect(i, point(x_coords[i] + x_offset, y_coords[i] + y_offset, true));
+
+		assert(i == 0 || !pack.get_rect(i).intersects(pack.get_rect(0)));
 
 		//TODO: This is ugly
 		if (!(pack.get_chip_base().contains(pack.get_rect(i).base) 

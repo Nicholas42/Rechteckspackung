@@ -414,6 +414,11 @@ weight packing::compute_netlength_optimal(const sequence_pair &list)
 
 pos packing::calculate_area()
 {
+	if (rect_list.size() == 0)
+	{
+		return 0;
+	}
+
 	rectangle rightest = *std::max_element(rect_list.begin(), rect_list.end(), 
 		[](rectangle rect1, rectangle rect2) { return rect1.get_max(dimension::x) < rect2.get_max(dimension::x); });
 	rectangle highest = *std::max_element(rect_list.begin(), rect_list.end(), 
