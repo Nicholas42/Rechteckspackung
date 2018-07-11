@@ -404,7 +404,7 @@ weight packing::compute_netlength_optimal(const sequence_pair &list)
         {
             return _invalid_cost;
         }
-        value += g.place(*this);
+        value += g.place();
     }
 
     assert(value == compute_netlength());

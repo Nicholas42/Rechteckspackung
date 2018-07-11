@@ -30,9 +30,9 @@ void graph::augment_path(path &p, weight w)
     _list.at(last_node).demand += w;
 }
 
-weight graph::potential_cost(size_t edge_id, bool reverse) const
+weight graph::potential_cost(size_t edge_index, bool reverse) const
 {
-    const edge &e = _edges.at(edge_id);
+    const edge &e = _edges.at(edge_index);
     weight cost = e.cost + _potential.at(e.from) - _potential.at(e.to);
     if (reverse)
     {
@@ -46,7 +46,7 @@ weight graph::potential_cost(size_t edge_id, bool reverse) const
 
 bool graph::compute_min_flow()
 {
-    if(compute_starting_potential())
+    if (!compute_starting_potential())
     {
         return false;
     }
@@ -157,14 +157,14 @@ bool graph::compute_starting_potential()
 
     }
 
-    return changed;
+    return !changed;
 }
 
-weight graph::place(packing &pack)
+weight graph::place()
 {
     weight ret = 0;
-    pos base = pack.get_rect(-1).get_pos(_dim);
-    for(auto &n: _list)
+    pos base = _pack.get_rect(-1).get_pos(_dim);
+    for (auto &n: _list)
     {
         switch (n.type)
         {
@@ -175,10 +175,9 @@ weight graph::place(packing &pack)
                 break;
             case node_type::rect_node:
             {
-                rectangle &rect = pack.get_rect(n.object_index);
+                rectangle &rect = _pack.get_rect(n.object_index);
                 rect.base.coord(_dim) = base - _potential.at(n.index);
                 rect.base.set = true;
-                //std::cout << base << ", " << rect.base.coord(_dim) << " " << rect.get_max(_dim) << std::endl;
                 break;
             }
             case node_type::net_lower_node:
@@ -199,78 +198,43 @@ graph graph::make_graph(packing &pack, dimension dim, sequence_pair sp)
 
     ret._list.reserve(2 + pack.get_num_rects() + 2 * pack.get_num_nets());
 
-    ret.add_node(node(0, 0, node_type::source));
-    ret.add_node(node(1, 0, node_type::chip_base));
-
-    for (size_t i = 0; i < pack.get_num_rects(); ++i)
-    {
-        ret.add_node(node(ret.get_node_index(node_type::rect_node, i), (int) i, node_type::rect_node));
-        ret.add_bound_arcs(pack.get_rect((int) i));
-    }
-
-    for (size_t i = 0; i < pack.get_num_nets(); ++i)
-    {
-        ret.add_node(node(pack.get_net(i), ret.get_node_index(node_type::net_lower_node, i), true));
-        ret.add_node(node(pack.get_net(i), ret.get_node_index(node_type::net_upper_node, i), false));
-    }
+    ret.add_all_nodes();
 
     for (size_t i = 0; i < pack.get_num_nets(); ++i)
     {
         for (auto p: pack.get_net(i).pin_list)
         {
-            ret.add_pin_arcs(p, i);
+            ret.add_pin_edges(p, i);
         }
     }
 
-    std::vector<bool> smaller_neg_locus(pack.get_num_rects());
+    std::vector<bool> smaller_neg_locus(pack.get_num_rects(), false);
 
-    for (size_t i = 0; i < pack.get_num_rects(); ++i)
+    for (auto it = sp.negative_locus.begin(); it != sp.negative_locus.end(); ++it)
     {
-        std::fill(smaller_neg_locus.begin(), smaller_neg_locus.end(), false);
+        ret.add_bound_edges(pack.get_rect((int) *it));
 
-        auto first_neg = std::find(sp.negative_locus.begin(), sp.negative_locus.end(), i);
-        ++first_neg;
-        for (auto it = first_neg; it != sp.negative_locus.end(); it++)
-        {
-            smaller_neg_locus.at(*it) = true;
-        }
-
-        // TODO: This is shit
         switch (dim)
         {
             case dimension::x:
             {
-                auto first_pos = std::find(sp.positive_locus.begin(), sp.positive_locus.end(), i);
-                ++first_pos;
-                for (auto it = first_pos; it != sp.positive_locus.end(); it++)
-                {
-                    if (smaller_neg_locus.at(*it))
-                    {
-                        ret.add_orientation_arcs(i, *it);
-                    }
-                }
+                ret.add_all_orientations(*it, sp.positive_locus.begin(), sp.positive_locus.end(), smaller_neg_locus);
                 break;
             }
             case dimension::y:
             {
-                auto first_pos = std::find(sp.positive_locus.rbegin(), sp.positive_locus.rend(), i);
-                ++first_pos;
-                for (auto it = first_pos; it != sp.positive_locus.rend(); it++)
-                {
-                    if (smaller_neg_locus.at(*it))
-                    {
-                        ret.add_orientation_arcs(i, *it);
-                    }
-                }
+                ret.add_all_orientations(*it, sp.positive_locus.rbegin(), sp.positive_locus.rend(), smaller_neg_locus);
                 break;
             }
         }
+
+        smaller_neg_locus.at(*it) = true;
     }
 
     return ret;
 }
 
-void graph::add_arc(size_t from, size_t to, weight cost, weight flow, weight cap)
+void graph::add_arc(size_t from, size_t to, weight cost, weight cap)
 {
     node &from_node = _list.at(from);
     node &to_node = _list.at(to);
@@ -278,13 +242,10 @@ void graph::add_arc(size_t from, size_t to, weight cost, weight flow, weight cap
     from_node.adjacent.push_back(_edges.size());
     to_node.adjacent.push_back(_edges.size());
 
-    from_node.demand -= flow;
-    to_node.demand += flow;
-
-    _edges.emplace_back(from, to, _edges.size(), cost, flow, cap);
+    _edges.emplace_back(from, to, _edges.size(), cost, cap);
 }
 
-size_t graph::get_node_index(node_type type, size_t index)
+size_t graph::get_node_index(node_type type, size_t index) const
 {
     switch (type)
     {
@@ -298,12 +259,12 @@ size_t graph::get_node_index(node_type type, size_t index)
             return 2 + _pack.get_num_rects() + 2 * index;
         case node_type::net_upper_node:
             return 2 + _pack.get_num_rects() + 2 * index + 1;
-		default:
-			throw new std::invalid_argument("Invalid argument: Unspecified value for type");
+        default:
+            throw new std::invalid_argument("Invalid argument: Unspecified value for type");
     }
 }
 
-void graph::add_bound_arcs(const rectangle &rect)
+void graph::add_bound_edges(const rectangle &rect)
 {
     size_t index = get_node_index(node_type::rect_node, (size_t) rect.id);
     size_t chip_base = get_node_index(node_type::chip_base);
@@ -311,15 +272,15 @@ void graph::add_bound_arcs(const rectangle &rect)
     add_arc(index, chip_base, rect.get_dimension(_dim) - _pack.get_chip_base().get_max(_dim));
 }
 
-void graph::add_pin_arcs(const pin &p, size_t net_id, weight flow)
+void graph::add_pin_edges(const pin &p, size_t net_id)
 {
     pos rel_pin_pos = _pack.get_rect(p.index).get_relative_pin_position(p, _dim);
     size_t pin_index = get_node_index(node_type::rect_node, (size_t) p.index);
-    add_arc(get_node_index(node_type::net_lower_node, net_id), pin_index, -rel_pin_pos, flow);
-    add_arc(pin_index, get_node_index(node_type::net_upper_node, net_id), rel_pin_pos, flow);
+    add_arc(get_node_index(node_type::net_lower_node, net_id), pin_index, -rel_pin_pos);
+    add_arc(pin_index, get_node_index(node_type::net_upper_node, net_id), rel_pin_pos);
 }
 
-void graph::add_orientation_arcs(size_t smaller, size_t bigger)
+void graph::add_orientation_edges(size_t smaller, size_t bigger)
 {
     add_arc(get_node_index(node_type::rect_node, smaller), get_node_index(node_type::rect_node, bigger),
             _pack.get_rect((int) smaller).get_dimension(_dim));
@@ -384,16 +345,16 @@ void graph::add_node(node &&n)
     {
         if (n.demand > 0)
         {
-            add_arc(0, _list.size() - 1, 0, 0, _list.back().demand);
+            add_arc(0, _list.size() - 1, 0, _list.back().demand);
             _list.at(0).demand += _list.back().demand;
             _list.back().demand = 0;
         }
     }
 }
 
-size_t graph::other_endpoint(size_t edge_id, size_t first_node) const
+size_t graph::other_endpoint(size_t edge_index, size_t first_node) const
 {
-    return _edges.at(edge_id).other_endpoint(first_node);
+    return _edges.at(edge_index).other_endpoint(first_node);
 }
 
 bool graph::is_allowed(const edge &e, size_t from) const
@@ -408,6 +369,43 @@ bool graph::is_allowed(const edge &e, size_t from) const
     }
 }
 
+void graph::add_all_nodes()
+{
+    add_node(node(0, 0, node_type::source));
+    add_node(node(1, 0, node_type::chip_base));
+
+    for (size_t i = 0; i < _pack.get_num_rects(); ++i)
+    {
+        add_node(node(get_node_index(node_type::rect_node, i), (int) i, node_type::rect_node));
+    }
+
+    for (size_t i = 0; i < _pack.get_num_nets(); ++i)
+    {
+        add_node(node(_pack.get_net(i), get_node_index(node_type::net_lower_node, i), true));
+        add_node(node(_pack.get_net(i), get_node_index(node_type::net_upper_node, i), false));
+    }
+}
+
+template<class Iterator>
+void graph::add_all_orientations(size_t rect_index, const Iterator &begin, const Iterator &end,
+                                 const std::vector<bool> &smaller_negative_locus)
+{
+    for (auto it = begin; it != end; ++it)
+    {
+        if (*it == rect_index)
+        {
+            return;
+        }
+        if (smaller_negative_locus.at(*it))
+        {
+            add_orientation_edges(rect_index, *it);
+        }
+    }
+
+    throw std::runtime_error(
+            "The rectangle " + std::to_string(rect_index) + " is missing from the postive locus of the sequence pair.");
+}
+
 size_t edge::other_endpoint(size_t first) const
 {
     assert(first == from || first == to);
@@ -416,7 +414,7 @@ size_t edge::other_endpoint(size_t first) const
 
 weight edge::residual_cap(size_t from_) const
 {
-    if(from_ == from)
+    if (from_ == from)
     {
         return cap == _invalid_cost ? _invalid_cost : cap - flow;
     }
