@@ -91,7 +91,9 @@ public:
 
     weight compute_netlength_optimal(const sequence_pair &list);
 
-    rectangle_iterator get_iter();
+	pos calculate_area();
+
+    rectangle_iterator get_iter(bool bounds_only);
 
     friend std::ostream &operator<<(std::ostream &out, const packing &rect);
 };
@@ -101,10 +103,12 @@ class rectangle_iterator
 private:
     std::vector<rectangle> &_rect_list;
     bool _at_end;
+	bool _bounds_only;
 public:
-    explicit rectangle_iterator (std::vector<rectangle> &rect_list_):
+    explicit rectangle_iterator (std::vector<rectangle> &rect_list_, bool bounds_only_):
             _rect_list(rect_list_),
-            _at_end(false)
+            _at_end(false),
+			_bounds_only(bounds_only_)
     {}
 
     rectangle_iterator &operator++();

@@ -222,6 +222,8 @@ void packing::read_dimension_from_inst(const std::string filename)
  */
 void packing::read_inst_from(const std::string filename)
 {
+	std::cout << filename << std::endl;
+
     std::ifstream file(filename);
     base_filename = filename;
 
@@ -412,9 +414,18 @@ weight packing::compute_netlength_optimal(const sequence_pair &list)
     return value;
 }
 
-rectangle_iterator packing::get_iter()
+pos packing::calculate_area()
 {
-    return rectangle_iterator(rect_list);
+	rectangle rightest = *std::max_element(rect_list.begin(), rect_list.end(), 
+		[](rectangle rect1, rectangle rect2) { return rect1.get_max(dimension::x) < rect2.get_max(dimension::x); });
+	rectangle highest = *std::max_element(rect_list.begin(), rect_list.end(), 
+		[](rectangle rect1, rectangle rect2) { return rect1.get_max(dimension::y) < rect2.get_max(dimension::y); });
+	return highest.get_max(dimension::y) * rightest.get_max(dimension::x);
+}
+
+rectangle_iterator packing::get_iter(bool bounds_only)
+{
+    return rectangle_iterator(rect_list, bounds_only);
 }
 
 pos bounding_box::half_circumference() const
@@ -458,19 +469,28 @@ rectangle_iterator &rectangle_iterator::operator++()
     for (auto &rect : _rect_list)
     {
         rect.rotate(rotation::rotated_90);
+
+		if (_bounds_only && rect.rot == rotation::rotated_180)
+		{
+			rect.rotate(rotation::rotated_180);
+		}
+
         if (rect.rot != rotation::rotated_0)
         {
             _at_end = false;
             break;
         }
 
-        rect.flip();
+		if (!_bounds_only)
+		{
+			rect.flip();
 
-        if (rect.flipped)
-        {
-            _at_end = false;
-            break;
-        }
+			if (rect.flipped)
+			{
+				_at_end = false;
+				break;
+			}
+		}
     }
     return *this;
 }

@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
      */
 
     /*packing best_pack;
-    weight  value = std::numeric_limits<weight>::max();
+    weight value = std::numeric_limits<weight>::max();
     rectangle_iterator rect_it = pack.get_iter();
     size_t count = 0;
 
