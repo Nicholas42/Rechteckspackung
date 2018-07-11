@@ -39,50 +39,73 @@ sequence_pair &sequence_pair_iterator::operator*()
     return _sp;
 }
 
-std::vector<pos> sequence_pair::place_dimension(dimension dim, const locusIt x_begin, const locusIt x_end, const locusIt y_begin, const locusIt y_end, const packing & pack) const
+std::vector<pos> sequence_pair::place_dimension(dimension dim, const packing & pack) const
 {
 	std::vector<pos> positions(pack.get_num_rects());
 
 	std::vector<size_t> y_indexes(pack.get_num_rects());
 	int i = 0;
-	for (auto it = y_begin; it != y_end; it++)
+	for (auto b : negative_locus)
 	{
-		y_indexes[*it] = i++;
+		y_indexes[b] = i++;
 	}
 
 	std::map<size_t, pos> cur_seqs;
-	cur_seqs[0] = 0;
+	cur_seqs[0] = 0; //This is the node for no seq found
 
-	for (auto it = x_begin; it != x_end; it++)
+	auto loop_content = [&](const size_t pack_index)
 	{
-		size_t pack_index = *it;
 		size_t y_index = y_indexes[pack_index];
-		auto cur_node = cur_seqs.insert({ pack_index + 1, 0 });
+		//We insert with length 0 to optimize the greatest index less than search
+		//0 is the node for no seq found so we treat the indices one-based in the context of cur_seqs
+		auto cur_node = cur_seqs.insert({ y_index + 1, 0 });
 		positions[pack_index] = (--cur_node.first)->second;
 		pos cur_seq_length = positions[pack_index] + pack.get_rect(pack_index).get_dimension(dim);
-		cur_seqs[pack_index + 1] = cur_seq_length;
+		cur_seqs[y_index + 1] = cur_seq_length;
+
+		//We go forward until we no longer need to delet nodes
 		while ((++cur_node.first)->second < cur_seq_length)
 		{
 			cur_seqs.erase((++cur_node.first)->first);
 		}
+	};
+
+	//Reverse iterators have the wrong type so we can't just assign a variable conditionally
+	if (dim == dimension::x)
+	{
+		std::for_each(positive_locus.begin(), positive_locus.end(), loop_content);
 	}
+	else
+	{
+		std::for_each(positive_locus.rbegin(), positive_locus.rend(), loop_content);
+	}
+
 
 	return positions;
 }
 
-void sequence_pair::apply_to(packing & pack)
+bool sequence_pair::apply_to(packing & pack)
 {
 	if (pack.get_num_rects() != positive_locus.size())
 	{
 		throw new std::invalid_argument("Sequence pair length does not match packing");
 	}
 
-	//Get coordinates by finding LCS in (X, Y) and (X^R, Y)
-	auto x_coords = place_dimension(dimension::x, positive_locus.begin(), positive_locus.end(), negative_locus.begin(), negative_locus.end(), pack);
-	auto y_coords = place_dimension(dimension::y, positive_locus.end(), positive_locus.begin(), negative_locus.begin(), negative_locus.end(), pack);
+	auto x_coords = place_dimension(dimension::x, pack);
+	auto y_coords = place_dimension(dimension::y, pack);
 
 	for (size_t i = 0; i < x_coords.size(); i++)
 	{
 		pack.move_rect(i, point(x_coords[i], y_coords[i], true));
+
+		//TODO: This is ugly
+		if (!(pack.get_chip_base().contains(pack.get_rect(i).base) 
+			&& pack.get_rect(i).get_max(dimension::x) <= pack.get_chip_base().get_max(dimension::x) 
+			&& pack.get_rect(i).get_max(dimension::y) <= pack.get_chip_base().get_max(dimension::y)))
+		{
+			return false;
+		}
 	}
+
+	return true;
 }
