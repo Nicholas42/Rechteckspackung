@@ -2,17 +2,21 @@
 #include <fstream>
 #include "common.h"
 #include "packing.h"
+#include "input_parser.h"
 #include "min_cost_flow.h"
 
 int main(int argc, char *argv[])
 {
-    packing pack;
+	input_parser parser;
+	parser.parse(argc, argv);
+
+    /*packing pack;
     if (argc < 3)
     {
         throw std::runtime_error("Insufficient arguments. Usage: ./programname instance_file solution_file");
     }
 
-    pack.read_inst_from(argv[1]);
+    pack.read_inst_from(argv[1]);*/
     /*
     pack.read_sol_from(argv[2]);
 
@@ -64,7 +68,7 @@ int main(int argc, char *argv[])
     }
      */
 
-    packing best_pack;
+    /*packing best_pack;
     weight  value = std::numeric_limits<weight>::max();
     rectangle_iterator rect_it = pack.get_iter();
     size_t count = 0;
@@ -97,6 +101,6 @@ int main(int argc, char *argv[])
         best_pack.draw_all_pins();
         best_pack.draw_all_nets();
         best_pack.write_bmp();
-    }
+    }*/
     return 0;
 }
