@@ -222,8 +222,6 @@ void packing::read_dimension_from_inst(const std::string filename)
  */
 void packing::read_inst_from(const std::string filename)
 {
-	std::cout << filename << std::endl;
-
     std::ifstream file(filename);
     base_filename = filename;
 
