@@ -143,11 +143,8 @@ const certificate packing::is_valid() const
     return certificate();
 }
 
-//TODO: Very naive dummy implementation so far
-// Seems fine to me. This is literally what we shall do.
 std::ostream &operator<<(std::ostream &out, const packing &pack)
 {
-    out << "#Nets: " << pack.get_num_nets() << "; #Rects " << pack.get_num_rects() << std::endl;
     for (auto &rect : pack._rect_list)
     {
         assert(pack._chip_base.get_pos(dimension::x) <= rect.get_pos(dimension::x));
@@ -157,14 +154,6 @@ std::ostream &operator<<(std::ostream &out, const packing &pack)
 
         out << rect << std::endl;
     }
-    for (auto &n : pack._net_list)
-    {
-        for (auto &p : n.pin_list)
-        {
-            out << pack.get_rect(p.index).get_absolute_pin_position(p) << std::endl;
-        }
-    }
-
     return out;
 }
 
