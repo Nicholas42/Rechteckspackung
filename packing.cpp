@@ -89,11 +89,11 @@ sequence_pair packing::to_sequence_pair() const
 
         if (it == line.end())
         {
-            down_pos[i] = seq_pair.negative_locus.insert(seq_pair.negative_locus.end(), i);
+            down_pos[i] = seq_pair.negative_locus.insert(seq_pair.negative_locus.begin(), i);
         }
         else
         {
-            down_pos[i] = seq_pair.negative_locus.insert(down_pos[*it], i);
+            down_pos[i] = seq_pair.negative_locus.insert(std::next(down_pos[*it]), i);
         }
         // So this rectangle does not intersect with one already there, therefore, we can go on
     }
