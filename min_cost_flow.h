@@ -6,7 +6,6 @@
 #include <cassert>
 #include <limits>
 #include <algorithm> //min_element
-#include "list_wrapper.h"
 #include "packing.h"
 #include "common.h"
 

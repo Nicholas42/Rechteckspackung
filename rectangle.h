@@ -116,6 +116,13 @@ struct rectangle
      * basepoint of rect.
      */
     bool smaller(const rectangle &rect, dimension dim) const;
+
+    /**
+     * A wrapper for smaller in the dimension::y with the addition that in case of equality the rectangle with the
+     * smaller id is smaller. From this, we get a strict ordering.
+     * @param rect The rectangle to compare with.
+     * @return True if this rectangle lays below of rect or if it has a smaller id in case of equality.
+     */
     bool operator<(const rectangle &rect) const;
 
     /**
