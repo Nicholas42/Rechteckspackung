@@ -13,6 +13,13 @@ struct pin
 
     int index; // index of the corresponding rectangle, -1 if fixed pin
 
+    /**
+     * Returns the position of the pin in the given dimension. This is always the postion relative to the unmodified
+     * rectangle. To obtain the relative or absolute position of the pin respecting rotation and flipping of the
+     * rectangle, use the functions in the rectangle class.
+     * @param dim The dimension which is queried.
+     * @return The position in the specified dimension.
+     */
     pos get_pos(dimension dim) const;
 };
 

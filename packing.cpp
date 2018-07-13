@@ -13,33 +13,27 @@ bool rect_ind_compare::operator()(size_t first, size_t second) const
     return elements[first] < elements[second];
 }
 
-/**
-* Determines wether the placement contains a collision (and thus is invalid).
-* Gives the indices of two colliding rectangles as an certificate or (-1, -1)
-* if there is no collision.
-*/
 sequence_pair packing::to_sequence_pair() const
 {
     sequence_pair seq_pair;
-    std::vector<std::list<size_t>::iterator> up_pos(rect_list.size(), seq_pair.positive_locus.end());
-    std::vector<std::list<size_t>::iterator> down_pos(rect_list.size(), seq_pair.negative_locus.end());
+    std::vector<std::list<size_t>::iterator> up_pos(_rect_list.size(), seq_pair.positive_locus.end());
+    std::vector<std::list<size_t>::iterator> down_pos(_rect_list.size(), seq_pair.negative_locus.end());
 
-    std::vector<size_t> indices(rect_list.size());
+    std::vector<size_t> indices(_rect_list.size());
     std::iota(indices.begin(), indices.end(), 0);
 
     // We want to sweep over the rectangles from left to right
     std::sort(indices.begin(), indices.end(), [this](size_t first, size_t second)
     {
-        return rectangle::compare(rect_list[first], rect_list[second]);
+        return rectangle::compare(_rect_list[first], _rect_list[second]);
     });
 
     // The sweeping line is always ordered from bottom to top
-    //TODO compare
-    std::set<size_t, rect_ind_compare> line(rect_ind_compare{rect_list});
+    std::set<size_t, rect_ind_compare> line(rect_ind_compare{_rect_list});
 
     for (auto &i : indices)
     {
-        const rectangle &rec = rect_list[i];
+        const rectangle &rec = _rect_list[i];
 
         auto in = line.insert(i);
         assert(in.second);
@@ -47,20 +41,18 @@ sequence_pair packing::to_sequence_pair() const
         auto it = in.first;
 
         // First we want to find the next rectangle below which is still active
-        if (it != line.begin() && rect_list[*std::prev(it)].contains_y(rec.base.y))
+        if (it != line.begin() && _rect_list[*std::prev(it)].contains_y(rec.base.y))
         {
             // rec is before the previous in the sp
-            if (rect_list[*std::prev(it)].contains_x(rec.base.x))
+            if (_rect_list[*std::prev(it)].contains_x(rec.base.x))
             {
                 throw std::runtime_error("Packing is invalid, impossible to find sequence pair");
             }
-            // TODO: insert before.
             up_pos[i] = seq_pair.positive_locus.insert(up_pos[*std::prev(it)], i);
             line.erase(std::prev(it));
         }
         else
         {
-            //TODO insert after
             if (it == line.begin())
             {
                 seq_pair.positive_locus.push_front(i);
@@ -74,13 +66,13 @@ sequence_pair packing::to_sequence_pair() const
 
         it++;
         // Since this does not intersect our rectangle we can go on to the rectangles above
-        while (it != line.end() && rec.contains_y(rect_list[*it].base.y))
+        while (it != line.end() && rec.contains_y(_rect_list[*it].base.y))
         {
             // This looks pretty different than the other direction, due to
             // a) line.end() points behind the end of line
             // b) line.erase returns an iterator pointing on the element behind the deleted one
 
-            if (rect_list[*it].contains_x(rec.base.x))
+            if (_rect_list[*it].contains_x(rec.base.x))
             {
                 throw std::runtime_error("Packing is invalid, impossible to find sequence pair");
             }
@@ -107,7 +99,7 @@ sequence_pair packing::to_sequence_pair() const
 */
 const certificate packing::is_valid() const
 {
-    std::vector<rectangle> rect_list_cpy(rect_list);
+    std::vector<rectangle> rect_list_cpy(_rect_list);
 
     // We want to sweep over the rectangles from left to right
     std::sort(rect_list_cpy.begin(), rect_list_cpy.end(), rectangle::compare);
@@ -158,16 +150,16 @@ const certificate packing::is_valid() const
 std::ostream &operator<<(std::ostream &out, const packing &pack)
 {
     out << "#Nets: " << pack.get_num_nets() << "; #Rects " << pack.get_num_rects() << std::endl;
-    for (auto &rect : pack.rect_list)
+    for (auto &rect : pack._rect_list)
     {
-        assert(pack.chip_base.get_pos(dimension::x) <= rect.get_pos(dimension::x));
-        assert(pack.chip_base.get_max(dimension::x) >= rect.get_max(dimension::x));
-        assert(pack.chip_base.get_pos(dimension::y) <= rect.get_max(dimension::y));
-        assert(pack.chip_base.get_max(dimension::y) >= rect.get_max(dimension::y));
+        assert(pack._chip_base.get_pos(dimension::x) <= rect.get_pos(dimension::x));
+        assert(pack._chip_base.get_max(dimension::x) >= rect.get_max(dimension::x));
+        assert(pack._chip_base.get_pos(dimension::y) <= rect.get_max(dimension::y));
+        assert(pack._chip_base.get_max(dimension::y) >= rect.get_max(dimension::y));
 
         out << rect << std::endl;
     }
-    for (auto &n : pack.net_list)
+    for (auto &n : pack._net_list)
     {
         for (auto &p : n.pin_list)
         {
@@ -190,13 +182,13 @@ void packing::read_sol_from(const std::string filename)
         throw std::runtime_error("File not " + filename + " not found.");
     }
 
-    rect_list.clear();
+    _rect_list.clear();
 
     rectangle rect;
     while (file >> rect)
     {
-        rect.id = rect_list.size();
-        rect_list.push_back(rect);
+        rect.id = _rect_list.size();
+        _rect_list.push_back(rect);
     }
 }
 
@@ -205,7 +197,7 @@ void packing::read_sol_from(const std::string filename)
  */
 void packing::read_dimension_from_inst(const std::string filename)
 {
-    base_filename = filename;
+    _base_filename = filename;
     std::ifstream file(filename);
 
     if (!file)
@@ -213,7 +205,7 @@ void packing::read_dimension_from_inst(const std::string filename)
         throw std::runtime_error("File not " + filename + " not found.");
     }
 
-    file >> chip_base;
+    file >> _chip_base;
 }
 
 /**
@@ -223,9 +215,9 @@ void packing::read_dimension_from_inst(const std::string filename)
 void packing::read_inst_from(const std::string filename)
 {
     std::ifstream file(filename);
-    base_filename = filename;
+    _base_filename = filename;
 
-    if (!(file >> chip_base))
+    if (!(file >> _chip_base))
     {
         throw std::runtime_error("File " + filename + " has invalid format.");
     }
@@ -235,8 +227,8 @@ void packing::read_inst_from(const std::string filename)
     {
         if (!rect.blockage)
         {
-            rect.id = rect_list.size();
-            rect_list.push_back(rect);
+            rect.id = _rect_list.size();
+            _rect_list.push_back(rect);
         }
     }
 
@@ -245,32 +237,32 @@ void packing::read_inst_from(const std::string filename)
     net n;
     while (file >> n)
     {
-        n.index = net_list.size();
-        net_list.push_back(n);
+        n.index = _net_list.size();
+        _net_list.push_back(n);
     }
 }
 
 void packing::draw_all_rectangles()
 {
-    assert(bmp.initialized);
+    assert(_bmp.initialized);
 
-    for (auto r : rect_list)
+    for (auto r : _rect_list)
     {
-        bmp.draw_rectangle(r, BLACK);
-        bmp.fill_rectangle(r, GREEN);
+        _bmp.draw_rectangle(r, BLACK);
+        _bmp.fill_rectangle(r, GREEN);
     }
 }
 
 void packing::draw_all_pins()
 {
-    assert(bmp.initialized);
+    assert(_bmp.initialized);
 
-    for (auto n : net_list)
+    for (auto n : _net_list)
     {
         for (auto p : n.pin_list)
         {
             point pin_point = get_rect(p.index).get_absolute_pin_position(p);
-            bmp.draw_point(pin_point, BLUE);
+            _bmp.draw_point(pin_point, BLUE);
         }
     }
 }
@@ -279,30 +271,30 @@ void packing::draw_cert(const certificate &cert)
 {
     if (!cert.valid)
     {
-        const rectangle r = rect_list[cert.first].intersection(rect_list[cert.second]);
-        bmp.draw_rectangle(r, BLACK);
-        bmp.fill_rectangle(r, RED);
+        const rectangle r = _rect_list[cert.first].intersection(_rect_list[cert.second]);
+        _bmp.draw_rectangle(r, BLACK);
+        _bmp.fill_rectangle(r, RED);
     }
 }
 
 void packing::write_bmp()
 {
-    assert(bmp.initialized);
-    bmp.write();
-    std::cout << "Wrote bitmap to " << bmp.filename << std::endl;
+    assert(_bmp.initialized);
+    _bmp.write();
+    std::cout << "Wrote bitmap to " << _bmp.filename << std::endl;
 }
 
 bool packing::init_bmp()
 {
-    const int width = chip_base.get_dimension(dimension::x);
-    const int height = chip_base.get_dimension(dimension::y);
+    const int width = _chip_base.get_dimension(dimension::x);
+    const int height = _chip_base.get_dimension(dimension::y);
     const int scaling = std::max(std::min(1000 / width, 1000 / height), 1);
     if (bitmap::valid(width * scaling, height * scaling))
     {
-        bmp = bitmap(base_filename + ".bmp", width, height, scaling);
+        _bmp = bitmap(_base_filename + ".bmp", width, height, scaling);
     }
 
-    return bmp.initialized;
+    return _bmp.initialized;
 }
 
 //TODO: maybe rename
@@ -310,64 +302,64 @@ const rectangle &packing::get_rect(int index) const
 {
     if (index < 0)
     {
-        return chip_base;
+        return _chip_base;
     }
     else
     {
-        return rect_list.at((size_t) index);
+        return _rect_list.at((size_t) index);
     }
 }
 
 size_t packing::get_num_rects() const
 {
-    return rect_list.size();
+    return _rect_list.size();
 }
 
 size_t packing::get_num_nets() const
 {
-    return net_list.size();
+    return _net_list.size();
 }
 
 void packing::move_rect(int index, point pos)
 {
-	if (index < 0)
-	{
-		throw new std::out_of_range("index");
-	}
-	else
-	{
-		rectangle &rect = get_rect(index);
-		rect.base = pos;
-		rect.base.set = true;
-	}
+    if (index < 0)
+    {
+        throw new std::out_of_range("index");
+    }
+    else
+    {
+        rectangle &rect = get_rect(index);
+        rect.base = pos;
+        rect.base.set = true;
+    }
 }
 
 const net &packing::get_net(size_t index) const
 {
-    return net_list.at(index);
+    return _net_list.at(index);
 }
 
 const rectangle &packing::get_chip_base() const
 {
-    return chip_base;
+    return _chip_base;
 }
 
 rectangle &packing::get_rect(int index)
 {
     if (index < 0)
     {
-        return chip_base;
+        return _chip_base;
     }
     else
     {
-        return rect_list.at((size_t) index);
+        return _rect_list.at((size_t) index);
     }
 }
 
 weight packing::compute_netlength() const
 {
     weight ret = 0;
-    for (auto &n: net_list)
+    for (auto &n: _net_list)
     {
         bounding_box b;
         for (auto &p: n.pin_list)
@@ -383,23 +375,23 @@ weight packing::compute_netlength() const
 
 void packing::draw_all_nets()
 {
-    for (auto const &n : net_list)
+    for (auto const &n : _net_list)
     {
         bounding_box b;
         for (auto const &p : n.pin_list)
         {
             b.add_point(get_rect(p.index).get_absolute_pin_position(p));
         }
-        bmp.draw_rectangle(b.to_rectangle(), RED);
+        _bmp.draw_rectangle(b.to_rectangle(), BLUE);
     }
 }
 
-weight packing::compute_netlength_optimal(const sequence_pair &list)
+weight packing::compute_netlength_optimal(const sequence_pair &sp)
 {
     weight value = 0;
     for (auto dim: all_dimensions)
     {
-        graph g = graph::make_graph(*this, dim, list);
+        graph g = graph::make_graph(*this, dim, sp);
         if (!g.compute_min_flow())
         {
             return _invalid_cost;
@@ -414,21 +406,24 @@ weight packing::compute_netlength_optimal(const sequence_pair &list)
 
 pos packing::calculate_area()
 {
-	if (rect_list.size() == 0)
-	{
-		return 0;
-	}
+    if (_rect_list.size() == 0)
+    {
+        return 0;
+    }
 
-	rectangle rightest = *std::max_element(rect_list.begin(), rect_list.end(), 
-		[](rectangle rect1, rectangle rect2) { return rect1.get_max(dimension::x) < rect2.get_max(dimension::x); });
-	rectangle highest = *std::max_element(rect_list.begin(), rect_list.end(), 
-		[](rectangle rect1, rectangle rect2) { return rect1.get_max(dimension::y) < rect2.get_max(dimension::y); });
-	return highest.get_max(dimension::y) * rightest.get_max(dimension::x);
+    pos area = 1;
+    for (auto dim : all_dimensions)
+    {
+        area *= std::max_element(_rect_list.begin(), _rect_list.end(), [dim](rectangle rect1, rectangle rect2)
+        { return rect1.get_max(dim) < rect2.get_max(dim); })->get_max(dim);
+    }
+
+    return area;
 }
 
 rectangle_iterator packing::get_iter(bool bounds_only)
 {
-    return rectangle_iterator(rect_list, bounds_only);
+    return rectangle_iterator(_rect_list, bounds_only);
 }
 
 pos bounding_box::half_circumference() const
@@ -473,10 +468,10 @@ rectangle_iterator &rectangle_iterator::operator++()
     {
         rect.rotate(rotation::rotated_90);
 
-		if (_bounds_only && rect.rot == rotation::rotated_180)
-		{
-			rect.rotate(rotation::rotated_180);
-		}
+        if (_bounds_only && rect.rot == rotation::rotated_180)
+        {
+            rect.rotate(rotation::rotated_180);
+        }
 
         if (rect.rot != rotation::rotated_0)
         {
@@ -484,16 +479,16 @@ rectangle_iterator &rectangle_iterator::operator++()
             break;
         }
 
-		if (!_bounds_only)
-		{
-			rect.flip();
+        if (!_bounds_only)
+        {
+            rect.flip();
 
-			if (rect.flipped)
-			{
-				_at_end = false;
-				break;
-			}
-		}
+            if (rect.flipped)
+            {
+                _at_end = false;
+                break;
+            }
+        }
     }
     return *this;
 }

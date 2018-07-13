@@ -153,6 +153,7 @@ void input_parser::optimize_wirelength(packing & pack, unsigned int optimality, 
     }
 	std::cout << "Value: " << best_weight << std::endl;
 	std::cout << best_pack;
+	std::cout << best_pack.to_sequence_pair();
 
 	if(bitmap)
     {
