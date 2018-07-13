@@ -1,13 +1,5 @@
 #include "packing.h"
 
-/**
- * Compares two pointers to rectangles by comparing the rectangles to which they point.
- */
-bool rect_ptr_compare::operator()(rectangle *r, rectangle *l) const
-{
-    return (*r) < (*l);
-}
-
 bool rect_ind_compare::operator()(size_t first, size_t second) const
 {
     return elements[first] < elements[second];
@@ -29,7 +21,7 @@ sequence_pair packing::to_sequence_pair() const
     });
 
     // The sweeping line is always ordered from bottom to top
-    std::set<size_t, rect_ind_compare> line(rect_ind_compare{_rect_list});
+    sweepline line(rect_ind_compare{_rect_list});
 
     for (auto &i : indices)
     {
@@ -99,35 +91,41 @@ sequence_pair packing::to_sequence_pair() const
 */
 const certificate packing::is_valid() const
 {
-    std::vector<rectangle> rect_list_cpy(_rect_list);
+
+    std::vector<size_t> indices(_rect_list.size());
+    std::iota(indices.begin(), indices.end(), 0);
 
     // We want to sweep over the rectangles from left to right
-    std::sort(rect_list_cpy.begin(), rect_list_cpy.end(), rectangle::compare);
+    std::sort(indices.begin(), indices.end(), [this](size_t first, size_t second)
+    {
+        return rectangle::compare(_rect_list[first], _rect_list[second]);
+    });
 
     // The sweeping line is always ordered from bottom to top
-    sweepline line;
+    sweepline line(rect_ind_compare{_rect_list});
 
-    for (auto &rec : rect_list_cpy)
+    for (auto i : indices)
     {
-        std::pair<sweepline::iterator, bool> in = line.insert(&rec);
+        const rectangle & rec = get_rect(i);
+        auto in = line.insert(i);
         assert(in.second);
 
-        sweepline::iterator it = in.first;
+        auto it = in.first;
 
         // First we want to find the next rectangle below which is still active
-        while (it != line.begin() && !(*std::prev(it))->contains_x(rec.base.x))
+        while (it != line.begin() && !_rect_list.at(*std::prev(it)).contains_x(rec.base.x))
         {
             line.erase(std::prev(it));
         }
 
-        if (it != line.begin() && rec.intersects(**std::prev(it)))
+        if (it != line.begin() && rec.intersects(_rect_list.at(*std::prev(it))))
         {
-            return certificate(rec.id, (*std::prev(it))->id);
+            return certificate(rec.id, *std::prev(it));
         }
 
         it++;
         // Since this does not intersect our rectangle we can go on to the rectangles above
-        while (it != line.end() && !(*it)->contains_x(rec.base.x))
+        while (it != line.end() && !_rect_list.at(*it).contains_x(rec.base.x))
         {
             // This looks pretty different than the other direction, due to
             // a) line.end() points behind the end of line
@@ -135,9 +133,9 @@ const certificate packing::is_valid() const
             it = line.erase(it);
         }
 
-        if (it != line.end() && (*it)->intersects(rec))
+        if (it != line.end() && _rect_list.at(*it).intersects(rec))
         {
-            return certificate(rec.id, (*it)->id);
+            return certificate(rec.id, *it);
         }
         // So this rectangle does not intersect with one already there, therefore, we can go on
     }
