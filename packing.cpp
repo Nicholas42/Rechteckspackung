@@ -324,7 +324,7 @@ void packing::move_rect(int index, point pos)
 {
     if (index < 0)
     {
-        throw new std::out_of_range("index");
+        throw std::out_of_range("index");
     }
     else
     {
@@ -421,11 +421,6 @@ pos packing::calculate_area()
     return area;
 }
 
-rectangle_iterator packing::get_iter(bool bounds_only)
-{
-    return rectangle_iterator(_rect_list, bounds_only);
-}
-
 pos bounding_box::half_circumference() const
 {
     assert(max.set && min.set);
@@ -459,41 +454,4 @@ void bounding_box::add_point(const point &p)
 rectangle bounding_box::to_rectangle() const
 {
     return {min, max};
-}
-
-rectangle_iterator &rectangle_iterator::operator++()
-{
-    _at_end = true;
-    for (auto &rect : _rect_list)
-    {
-        rect.rotate(rotation::rotated_90);
-
-        if (_bounds_only && rect.rot == rotation::rotated_180)
-        {
-            rect.rotate(rotation::rotated_180);
-        }
-
-        if (rect.rot != rotation::rotated_0)
-        {
-            _at_end = false;
-            break;
-        }
-
-        if (!_bounds_only)
-        {
-            rect.flip();
-
-            if (rect.flipped)
-            {
-                _at_end = false;
-                break;
-            }
-        }
-    }
-    return *this;
-}
-
-rectangle_iterator::operator bool() const
-{
-    return !_at_end;
 }

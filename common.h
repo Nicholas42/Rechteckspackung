@@ -92,7 +92,7 @@ struct point
             case dimension::y :
                 return other ? x : y;
             default:
-				throw new std::invalid_argument("Invalid argurment: Unspecified value for dim");
+				throw std::invalid_argument("Invalid argurment: Unspecified value for dim");
 		}
     }
 
@@ -111,7 +111,7 @@ struct point
             case dimension::y :
                 return other ? x : y;
             default:
-				throw new std::invalid_argument("Invalid argurment: Unspecified value for dim");
+				throw std::invalid_argument("Invalid argurment: Unspecified value for dim");
         }
     }
 };

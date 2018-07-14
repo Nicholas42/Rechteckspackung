@@ -15,7 +15,6 @@ class packing;
 class sequence_pair
 {
 private:
-	using locusIt = std::list<size_t>::iterator;
 	std::vector<pos> place_dimension(dimension dim, const packing & pack) const;
 
 public:
@@ -32,22 +31,6 @@ public:
     }
 
 	bool apply_to(packing &pack);
-};
-
-class sequence_pair_iterator
-{
-private:
-    sequence_pair _sp;
-    bool _at_end;
-public:
-    explicit sequence_pair_iterator(size_t length):
-        _sp(length),
-        _at_end(false)
-    {}
-
-    sequence_pair_iterator &operator++();
-    explicit operator bool() const;
-    sequence_pair &operator*();
 };
 
 std::ostream &operator<<(std::ostream &out, const sequence_pair &);

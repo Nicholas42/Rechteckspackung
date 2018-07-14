@@ -187,32 +187,7 @@ public:
      */
     pos calculate_area();
 
-    /**
-     * Returns a rectangle_iterator which iterates over all possible rotations and flippings of the rectangles.
-     * @param bounds_only For the bounding box optimality flipping is irrelevant and rotation by 180 degrees is the same
-     * as no rotation. If this is true only 2 rotations per rectangle will be iterated.
-     * @return A rectangle_iterator which does that.
-     */
-    rectangle_iterator get_iter(bool bounds_only);
-
     friend std::ostream &operator<<(std::ostream &out, const packing &rect);
-};
-
-class rectangle_iterator
-{
-private:
-    std::vector<rectangle> &_rect_list;
-    bool _at_end;
-    bool _bounds_only;
-public:
-    explicit rectangle_iterator(std::vector<rectangle> &rect_list_, bool bounds_only_) :
-            _rect_list(rect_list_),
-            _at_end(false),
-            _bounds_only(bounds_only_)
-    {}
-
-    rectangle_iterator &operator++();
-    explicit operator bool() const;
 };
 
 #endif // !PACKING_H

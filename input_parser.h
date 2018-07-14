@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cmath>
 #include "packing.h"
+#include "placement_iterator.h"
 
 class input_parser
 {
@@ -16,8 +17,8 @@ private:
 public:
 	void parse(int argc, char* argv[]);
 	void print_help();
-	void optimize_bounding(packing & pack, unsigned int optimality, bool bitmap);
-	void optimize_wirelength(packing & pack, unsigned int optimality, bool bitmap);
+	void optimize_bounding(packing & pack, int optimality, bool bitmap);
+	void optimize_wirelength(packing & pack, int optimality, bool bitmap);
 };
 
 #endif // !INPUT_PARSER_H

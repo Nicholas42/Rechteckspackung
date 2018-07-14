@@ -43,7 +43,7 @@ void input_parser::parse(int argc, char * argv[])
 
 	std::string input_file(argv[1]);
 	//We no longer care about the first argument since we assumed it to be filename
-	begin++; 
+	begin++;
 
 	//We assume global (=0) and check for local
 	unsigned int optimality = 0;
@@ -52,7 +52,7 @@ void input_parser::parse(int argc, char * argv[])
 	{
 		try
 		{
-			optimality = std::stoul(optimality_arg);
+			optimality = std::stoi(optimality_arg);
 		}
 		catch (const std::exception&)
 		{
@@ -94,32 +94,26 @@ If no options are supplied, --rect and --wire will be used.)";
 	std::cout << help_text << std::endl;
 }
 
-void input_parser::optimize_bounding(packing & pack, unsigned int optimality, bool bitmap)
+void input_parser::optimize_bounding(packing & pack, int optimality, bool bitmap)
 {
 	std::cout << "Placing rectangles..." << std::endl;
 	packing best_pack;
 	pos min_area = std::numeric_limits<pos>::max();
 
-	rectangle_iterator rect_it = pack.get_iter(true);
+	placement_iterator pl_it(pack, optimality, true);
 	size_t cnt = 1;
 	do
 	{
-		sequence_pair_iterator sp_it(pack.get_num_rects());
-		do
+		if ((*pl_it).apply_to(pack))
 		{
-			if ((*sp_it).apply_to(pack))
+			pos cur_area = pack.calculate_area();
+			if (cur_area < min_area)
 			{
-				pos cur_area = pack.calculate_area();
-				if (cur_area < min_area)
-				{
-					best_pack = pack;
-					min_area = cur_area;
-				}
+				best_pack = pack;
+				min_area = cur_area;
 			}
-		} while (++sp_it);
-		std::cout << "(" << cnt << "/" << std::pow(2, pack.get_num_rects()) << ")" << std::endl;
-		cnt++;
-	} while (++rect_it);
+		}
+	} while (++pl_it);
 
 	std::cout << best_pack.calculate_area() << std::endl;
 	if (bitmap && best_pack.init_bmp())
@@ -129,45 +123,40 @@ void input_parser::optimize_bounding(packing & pack, unsigned int optimality, bo
 	}
 }
 
-void input_parser::optimize_wirelength(packing & pack, unsigned int optimality, bool bitmap)
+void input_parser::optimize_wirelength(packing & pack, int optimality, bool bitmap)
 {
 	packing best_pack;
 	weight best_weight = _invalid_cost;
-	rectangle_iterator rect_it = pack.get_iter(false);
+	placement_iterator pl_it(pack, optimality, false);
 
-	while (rect_it)
-    {
-        sequence_pair_iterator all_sp(pack.get_num_rects());
-        while (all_sp)
-        {
-            weight new_weight = pack.compute_netlength_optimal(*all_sp);
-            if (new_weight < best_weight)
-            {
-                std::cout << *all_sp;
-                best_pack = pack;
-                best_weight = new_weight;
-            }
-            ++all_sp;
-        }
-        ++rect_it;
-    }
+	while (pl_it)
+	{
+		weight new_weight = pack.compute_netlength_optimal(*pl_it);
+		if (new_weight < best_weight)
+		{
+			std::cout << *pl_it;
+			best_pack = pack;
+			best_weight = new_weight;
+		}
+		++pl_it;
+	}
 	std::cout << "Value: " << best_weight << std::endl;
 	std::cout << best_pack;
 	std::cout << best_pack.to_sequence_pair();
 
-	if(bitmap)
-    {
-        if(best_pack.init_bmp())
-        {
-            best_pack.draw_all_rectangles();
-            best_pack.draw_all_nets();
-            best_pack.draw_all_pins();
-            best_pack.write_bmp();
-        }
-        else
-        {
-            std::cout << "Instance is to big for a bitmap." << std::endl;
-        }
-    }
+	if (bitmap)
+	{
+		if (best_pack.init_bmp())
+		{
+			best_pack.draw_all_rectangles();
+			best_pack.draw_all_nets();
+			best_pack.draw_all_pins();
+			best_pack.write_bmp();
+		}
+		else
+		{
+			std::cout << "Instance is to big for a bitmap." << std::endl;
+		}
+	}
 }
 

@@ -1,19 +1,5 @@
 #include "sequence_pair.h"
 
-sequence_pair_iterator &sequence_pair_iterator::operator++()
-{
-    if(!std::next_permutation(_sp.negative_locus.begin(), _sp.negative_locus.end()))
-    {
-        _at_end = !std::next_permutation(_sp.positive_locus.begin(), _sp.positive_locus.end());
-    }
-    return *this;
-}
-
-sequence_pair_iterator::operator bool() const
-{
-    return !_at_end;
-}
-
 std::ostream &operator<<(std::ostream &out, const sequence_pair & sp)
 {
     out << "Positive Locus: ";
@@ -32,11 +18,6 @@ std::ostream &operator<<(std::ostream &out, const sequence_pair & sp)
     out << std::endl;
 
     return  out;
-}
-
-sequence_pair &sequence_pair_iterator::operator*()
-{
-    return _sp;
 }
 
 std::vector<pos> sequence_pair::place_dimension(dimension dim, const packing & pack) const
@@ -88,7 +69,7 @@ bool sequence_pair::apply_to(packing & pack)
 {
 	if (pack.get_num_rects() != positive_locus.size())
 	{
-		throw new std::invalid_argument("Sequence pair length does not match packing");
+		throw std::invalid_argument("Sequence pair length does not match packing");
 	}
 
 	auto x_coords = place_dimension(dimension::x, pack);
@@ -101,8 +82,6 @@ bool sequence_pair::apply_to(packing & pack)
 	for (size_t i = 0; i < x_coords.size(); i++)
 	{
 		pack.move_rect(i, point(x_coords[i] + x_offset, y_coords[i] + y_offset, true));
-
-		assert(i == 0 || !pack.get_rect(i).intersects(pack.get_rect(0)));
 
 		//TODO: This is ugly
 		if (!(pack.get_chip_base().contains(pack.get_rect(i).base) 
