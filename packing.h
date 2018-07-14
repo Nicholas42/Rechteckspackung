@@ -21,11 +21,6 @@
 #include "sequence_pair.h"
 #include "min_cost_flow.h"
 
-struct rect_ptr_compare
-{
-    bool operator()(rectangle *r, rectangle *l) const;
-};
-
 struct rect_ind_compare
 {
     const std::vector<rectangle> &elements;
@@ -45,7 +40,7 @@ struct bounding_box
     rectangle to_rectangle() const;
 };
 
-using sweepline = std::set<rectangle *, rect_ptr_compare>;
+using sweepline = std::set<size_t , rect_ind_compare>;
 
 class rectangle_iterator;
 
