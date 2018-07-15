@@ -50,25 +50,35 @@ bool placement_iterator::_next_combination(It begin, It middle, It end)
 	It forward_scan = middle;
 	It last = end - 1;
 
+	//Find the greatest element in the subset which is smaller than the greatest element not in the subset
+	//We call this element e
 	while ((--backward_scan != begin) && (*backward_scan > *last));
 
+	//If all elements in the subset are greater than the elements not in the subset we have reached the last subset
 	bool last_permutation = (backward_scan == begin) && (*begin > *last);
 
 	if (!last_permutation)
 	{
+		//Find the smallest element not in the subset greater than e. We call this element f
 		while ((forward_scan != last) && (*backward_scan > *forward_scan))
 		{
 			forward_scan++;
 		}
 
+		//Swap e and f
+		std::iter_swap(backward_scan, forward_scan);
+
+		//We now might have to sort the elements after our swap
 		begin = backward_scan;
-		std::iter_swap(begin, forward_scan);
 		begin++;
 		forward_scan++;
 	}
 
+	//We need to reorder, if we have reached the last subset or if we have swapped an element not at the end
+	//of a set
 	if (begin != middle && forward_scan != end)
 	{
+		//Fill up the rest of the subset starting from f
 		backward_scan = middle;
 		last = forward_scan;
 		while (backward_scan != begin && forward_scan != end)
@@ -107,23 +117,26 @@ placement_iterator::placement_iterator(packing & pack, size_t optimality, bool b
 		std::vector<std::reference_wrapper<rectangle>> rect_list;
 		for (size_t i = 0; i < _pack.get_num_rects(); i++)
 		{
-			rect_list.push_back(_pack.get_rect(i));
+			rect_list.push_back(_pack.get_rect((int)i));
 		}
 		_rect_it = rectangle_iterator(rect_list, _bounds_only);
 	}
 	else
 	{
+		//Initialize for first subset
 		_negative_subset = std::vector<size_t>(_sp.negative_locus.begin(), _sp.negative_locus.end());
 		_positive_subset = std::vector<size_t>(_sp.positive_locus.begin(), _sp.positive_locus.end());
 		_subset_positions = std::vector<std::pair<std::list<size_t>::iterator, std::list<size_t>::iterator>>(_optimality);
 		auto _pos_it = _sp.positive_locus.begin(), _neg_it = _sp.negative_locus.begin();
 		for (size_t i = 0; i < _optimality; i++)
 		{
+			_rect_subset.push_back(std::ref(_pack.get_rect((int)_positive_subset[i])));
 			_subset_positions[i].first = _pos_it;
 			_subset_positions[i].second = _neg_it;
 			_pos_it++;
 			_neg_it++;
 		}
+		_rect_it = rectangle_iterator(_rect_subset, _bounds_only);
 	}
 }
 
@@ -131,15 +144,18 @@ void placement_iterator::_next_subset()
 {
 	_new_subset = false;
 
+	//Output subset
 	for (size_t i = 0; i < _optimality; i++)
 	{
 		std::cout << _positive_subset[i] << " ";
 	}
 	std::cout << std::endl;
 
+	//Generate new subset
 	_at_end = !_next_combination(_positive_subset.begin(), _positive_subset.begin() + _optimality, _positive_subset.end());
 	_negative_subset.assign(_positive_subset.begin(), _positive_subset.end());
 
+	//Set iterators in sequence pair for new subset
 	size_t j = 0;
 	for (auto it = _sp.positive_locus.begin(); it != _sp.positive_locus.end(); it++)
 	{
@@ -169,24 +185,32 @@ void placement_iterator::_next_subset()
 			j++;
 		}
 	}
+
+	//Tell rectangle iterator which rectangles to permute
+	for (size_t i = 0; i < _optimality; i++)
+	{
+		_rect_subset[i] = std::ref(_pack.get_rect((int)_positive_subset[i]));
+	}
+	_rect_it = rectangle_iterator(_rect_subset, _bounds_only);
 }
 
 placement_iterator & placement_iterator::operator++()
 {
-	if (_optimality == 0)
+	if (_optimality == 0) //Optimize globally
 	{
 		if (!(++_rect_it) && !std::next_permutation(_sp.negative_locus.begin(), _sp.negative_locus.end()))
 		{
 			_at_end = !std::next_permutation(_sp.positive_locus.begin(), _sp.positive_locus.end());
 		}
 	}
-	else
+	else //Optimize k-locally
 	{
 		if (_new_subset)
 		{
 			_next_subset();
 		}
 
+		//Rotate rectangles
 		if (!(++_rect_it))
 		{
 			//Permute subsets

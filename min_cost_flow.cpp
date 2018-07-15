@@ -63,7 +63,7 @@ bool graph::compute_min_flow()
 }
 
 
-// This is O(n^2)-dijkstra. It suffices for the requested runtime and right now I am to lazy for something better.
+// This is O(n^2)-dijkstra. It suffices for the requested runtime and right now I am too lazy for something better.
 weight graph::compute_shortest_path(path &ret)
 {
     std::vector<weight> distances(_potential.size(), _invalid_cost);
