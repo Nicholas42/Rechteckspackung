@@ -38,6 +38,7 @@ rectangle_iterator::operator bool() const
 	return !_at_end;
 }
 
+//Source (with modifications): http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2639.pdf
 template<class It>
 bool placement_iterator::_next_combination(It begin, It middle, It end)
 {
@@ -65,20 +66,22 @@ bool placement_iterator::_next_combination(It begin, It middle, It end)
 			forward_scan++;
 		}
 
-		//Swap e and f
+		//Swap the values e and f
 		std::iter_swap(backward_scan, forward_scan);
 
-		//We now might have to sort the elements after our swap
-		begin = backward_scan;
-		begin++;
+		//[begin, backward_scan] is untouched so ignore
+		begin = backward_scan + 1;
+
+		//We have nothing more to do if forward_scan is pointing to last
 		forward_scan++;
 	}
 
-	//We need to reorder, if we have reached the last subset or if we have swapped an element not at the end
-	//of a set
+	//This always happens if last_permutation is true. If so we just reverse the whole permutation and skip the loop
+	//Else this means that we need to transfer multiple elements between subset and not-subset
 	if (begin != middle && forward_scan != end)
 	{
-		//Fill up the rest of the subset starting from f
+		//Swap the elements coming behind f until excluive middle out of the subset, so that the sequence behind
+		//f has the smallest possible values out of all elements not in the subset (though it is in reverse order)
 		backward_scan = middle;
 		last = forward_scan;
 		while (backward_scan != begin && forward_scan != end)
@@ -88,6 +91,7 @@ bool placement_iterator::_next_combination(It begin, It middle, It end)
 			forward_scan++;
 		}
 
+		//The swapped parts are reversed
 		std::reverse(begin, backward_scan);
 		std::reverse(begin, middle);
 
@@ -143,13 +147,6 @@ placement_iterator::placement_iterator(packing & pack, size_t optimality, bool b
 void placement_iterator::_next_subset()
 {
 	_new_subset = false;
-
-	//Output subset
-	for (size_t i = 0; i < _optimality; i++)
-	{
-		std::cout << _positive_subset[i] << " ";
-	}
-	std::cout << std::endl;
 
 	//Generate new subset
 	_at_end = !_next_combination(_positive_subset.begin(), _positive_subset.begin() + _optimality, _positive_subset.end());
