@@ -99,12 +99,12 @@ bool placement_iterator::_next_combination(It begin, It middle, It end)
 }
 
 placement_iterator::placement_iterator(packing & pack, size_t optimality, bool bounds_only) :
-	_rect_it(std::vector<std::reference_wrapper<rectangle>>(), _bounds_only),
 	_pack(pack),
 	_optimality(optimality),
 	_bounds_only(bounds_only),
 	_at_end(false),
 	_new_subset(false),
+	_rect_it(std::vector<std::reference_wrapper<rectangle>>(), bounds_only),
 	_sp(_pack.get_num_rects())
 {
 	if (_optimality >= _pack.get_num_rects())
