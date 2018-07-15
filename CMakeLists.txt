@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 project (Rechteckspackung)
 
 set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_BUILD_TYPE Release)
 include(Warnings.cmake)
 
 add_custom_target(common.h)

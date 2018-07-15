@@ -27,7 +27,7 @@ void input_parser::parse(int argc, char * argv[])
 	//We don't care about the application name
 	auto begin = argv + 1;
 	const auto end = argv + argc;
-	bool invalid = false;
+
 	if (get_switch(begin, end, "--help"))
 	{
 		print_help();
@@ -174,9 +174,7 @@ void input_parser::optimize_wirelength(packing & pack, size_t optimality, bool b
 		}
 		++pl_it;
 	}
-	std::cout << "Value: " << best_weight << std::endl;
-	std::cout << best_pack;
-	std::cout << best_pack.to_sequence_pair();
+	std::cout << "Value of best packing: " << best_weight << std::endl;
 
 	std::ofstream outfile(output_file);
 	outfile << best_pack;
