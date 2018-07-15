@@ -278,7 +278,7 @@ bool packing::init_bmp()
     const int scaling = std::max(std::min(1000 / width, 1000 / height), 1);
     if (bitmap::valid(width * scaling, height * scaling))
     {
-        _bmp = bitmap(_base_filename + ".bmp", width, height, scaling);
+        _bmp = bitmap(_base_filename + ".bmp", width, height, scaling, _chip_base.base);
     }
 
     return _bmp.initialized;

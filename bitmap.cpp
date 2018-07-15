@@ -70,17 +70,17 @@ void bitmap::draw_rectangle(const rectangle &rect, const pixel &color)
 {
     for (dimension dim : all_dimensions)
     {
-        for (int32_t i = scaling * rect.get_pos(dim); i <= scaling * rect.get_max(dim); ++i)
+        for (int32_t i = scaling * (rect.get_pos(dim) - base.coord(dim)); i <= scaling * (rect.get_max(dim) - base.coord(dim)); ++i)
         {
             if(dim == dimension::x)
             {
-                put_pixel(i, rect.get_pos(dim, true) * scaling, color);
-                put_pixel(i, rect.get_max(dim, true) * scaling, color);
+                put_pixel(i, (rect.get_pos(dim, true) - base.coord(dim, true)) * scaling, color);
+                put_pixel(i, (rect.get_max(dim, true) - base.coord(dim, true)) * scaling, color);
             }
             else
             {
-                put_pixel(rect.get_pos(dim, true) * scaling, i, color);
-                put_pixel(rect.get_max(dim, true) * scaling, i, color);
+                put_pixel((rect.get_pos(dim, true) - base.coord(dim, true)) * scaling, i, color);
+                put_pixel((rect.get_max(dim, true) - base.coord(dim, true)) * scaling, i, color);
             }
         }
     }
@@ -92,9 +92,9 @@ void bitmap::draw_rectangle(const rectangle &rect, const pixel &color)
  */
 void bitmap::fill_rectangle(const rectangle &rect, const pixel &color)
 {
-    for (int32_t x = rect.base.x * scaling + 1; x < rect.get_max(dimension::x) * scaling; x++)
+    for (int32_t x = (rect.base.x - base.x) * scaling + 1; x < (rect.get_max(dimension::x) - base.x) * scaling; x++)
     {
-        for (int32_t y = rect.base.y * scaling + 1; y < rect.get_max(dimension::y) * scaling; y++)
+        for (int32_t y = (rect.base.y - base.y) * scaling + 1; y < (rect.get_max(dimension::y) - base.y) * scaling; y++)
         {
             put_pixel(x, y, color);
         }
@@ -107,8 +107,8 @@ void bitmap::fill_rectangle(const rectangle &rect, const pixel &color)
 void bitmap::draw_point(const point &p, const pixel &color)
 {
     assert(p.set);
-    int32_t x = scaling * p.x;
-    int32_t y = scaling * p.y;
+    int32_t x = scaling * (p.x - base.x);
+    int32_t y = scaling * (p.y - base.y);
 
     for(int32_t i = std::max(0, x - 3); i < std::min(width - 1, x + 3); i++)
     {
@@ -121,7 +121,7 @@ void bitmap::draw_point(const point &p, const pixel &color)
 
 bool bitmap::valid(const int32_t width,const  int32_t height)
 {
-    const int64_t long_width = static_cast<const int64_t> (width);
-	const int64_t long_height = static_cast<const int64_t> (height);
+    const int64_t long_width = static_cast<int64_t> (width);
+	const int64_t long_height = static_cast<int64_t> (height);
     return (long_height * long_width) <= MAX_FILE_SIZE/3;
 }
