@@ -105,7 +105,7 @@ Options are:
 --help: Display this text.
 --out path: The name and path of the output file. Defaults to input file with ending .out added.
 
-If no options are supplied, --rect and --wire will be used.)";
+If no options are supplied, --global and --wire will be used.)";
 
 	std::cout << help_text << std::endl;
 }
@@ -135,6 +135,8 @@ void input_parser::optimize_bounding(packing & pack, size_t optimality, bool bit
 		std::ofstream outfile(output_file);
 		outfile << best_pack;
 		outfile.flush();
+
+		std::cout << "Output written to " << output_file << std::endl;
 
 		if (bitmap)
 		{
@@ -179,6 +181,8 @@ void input_parser::optimize_wirelength(packing & pack, size_t optimality, bool b
 	std::ofstream outfile(output_file);
 	outfile << best_pack;
 	outfile.flush();
+
+	std::cout << "Output written to " << output_file << std::endl;
 
 	if (bitmap)
 	{
