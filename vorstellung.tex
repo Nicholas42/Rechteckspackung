@@ -1,0 +1,335 @@
+\documentclass{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amssymb,amsthm}
+\usepackage{listings}
+\usepackage[ngerman]{babel}
+\usepackage{tikz}
+\usetikzlibrary{patterns}
+\usetikzlibrary{backgrounds}
+\usepackage{algorithm2e}
+
+\setbeamertemplate{caption}{\raggedright\insertcaption\par}
+\usetheme{Copenhagen}
+\usecolortheme{seahorse}
+\usefonttheme{structurebold}
+
+%% Englisches Begriffe sind schon belegt.
+\DeclareMathOperator{\hoehe}{height}
+\DeclareMathOperator{\breite}{width}
+\DeclareMathOperator{\ausmenge}{offset}
+\DeclareMathOperator{\lcs}{lcs}
+
+\newcommand{\rev}{^{\operatorname{R}}}
+\tikzset{
+  invisible/.style={opacity=0},
+  visible on/.style={alt={#1{}{invisible}}},
+  alt/.code args={<#1>#2#3}{%
+    \alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}} % \pgfkeysalso doesn't change the path
+  },
+}
+
+\title[Gruppe 6]{Programmierpraktikum - Gruppe 6}
+\author[Lukas, Nicholas]{Lukas Kempf, Nicholas Schwab}
+\date{24. Juli 2018}
+
+\begin{document}
+\lstset{language=C++,
+                breaklines=true,
+                showstringspaces=false,
+                basicstyle=\ttfamily,
+                keywordstyle=\color{blue}\ttfamily,
+                stringstyle=\color{red}\ttfamily,
+                commentstyle=\color{teal}\ttfamily,
+                morecomment=[l][\color{magenta}]{\#}
+}
+\begin{frame}[plain]
+\titlepage
+\end{frame}
+
+\begin{frame}{Sequence pair - Definition}
+\begin{figure}\centering
+\begin{minipage}{0.4\textwidth}
+ \begin{tikzpicture}[x=5mm,y=5mm]
+  \draw (0,0) rectangle (8,8);
+  \draw (0,0) rectangle (4,3);
+  \draw (4,0) rectangle (7,5);
+  \draw (2,5) rectangle (5,8);
+  \draw (5,6) rectangle (8,8);
+  \path (0,-0.2) -- (8,-0.2);
+  \path (0,8.2) -- (8,8.2);
+  \draw[green,line width=1pt] (0,0) -- (4,3) node[midway, above left]{2} -- (4,4.9) -- (5,4.9) -- (8,6) -- (8,8);
+  \draw[blue,line width=1pt] (0,0) -- (4,0) -- (7,5) node[midway, above left]{1} -- (8.2,5) -- (8.2,8);
+  \draw[orange, line width=1pt] (0,0) -- (0,3) -- (4,5.1) -- (5,5.1) -- (5,6) -- (8,8) node[midway, above left]{3};
+  \draw[red,line width=1pt] (-0.2, 0) -- (-0.2,3) -- (2,5) -- (5,8) node[midway, above left]{4} -- (8,8);
+ \end{tikzpicture}  
+ \caption{Positiver Lokus}\end{minipage}%
+\qquad \begin{minipage}{0.4\textwidth}
+ \begin{tikzpicture}[x=5mm,y=5mm]
+  \draw (0,0) rectangle (8,8);
+  \draw (0,0) rectangle (4,3);
+  \draw (4,0) rectangle (7,5);
+  \draw (2,5) rectangle (5,8);
+  \draw (5,6) rectangle (8,8);
+  \draw[green,line width=1pt] (0,8) -- (0,3) -- (4,0) node[midway, above right]{4} -- (4,-0.2) -- (8,-0.2);
+  \draw[blue,line width=1pt] (0,8) -- (2,5) -- (4,5) -- (7,0) node[midway, above right]{3} -- (8,0);
+  \draw[orange, line width=1pt] (0,8.2) -- (5, 8.2) -- (5,8) -- (8,6) node[midway, above right]{1} -- (8,0);
+  \draw[red,line width=1pt] (0, 8) -- (2,8) -- (5,5) node[midway, above right]{2}-- (7,5) -- (8,0);
+ \end{tikzpicture}
+ \caption{Negativer Lokus}
+ \end{minipage}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Sequence Pair - Relation zu Relationen}
+Die Reihenfolge der Rechtecke im Sequence Pair bestimmt ihre horizontalen bzw. vertikalen Relationen.
+\begin{figure}
+  \begin{tikzpicture}[x=3mm,y=3mm]
+  \draw (0,0) rectangle (12,5);
+  \draw[dashed] (-4,0) -- (16,0);
+  \draw[dashed] (-4,5) -- (16,5);
+  \draw[dashed] (0,-4) -- (0,9);
+  \draw[dashed] (12,-4) -- (12,9); 
+  
+  %% rechts
+  \draw[green,line width=1pt,visible on=<2-3>] (-4,0) -- (0,0) -- (12,5) -- (12,9);
+  
+  \draw[red,line width=1pt,visible on=<3>] (-4,5) -- (0,5) -- (12,0) -- (12,-4);
+  
+  \begin{scope}[on background layer]
+  \fill[pattern=north west lines, pattern color=green!40!white,visible on=<2-3>] (-4,0) -- (12,0) -- (12,9) -- (16,9) -- (16,-4) -- (-4,-4) -- (-4,0);
+  \fill[pattern=north east lines, pattern color=red!40!white,visible on=<3>] (-4,5) -- (12,5) -- (12,-4) -- (16,-4) -- (16, 9) -- (-4,9) -- cycle;
+  
+  \end{scope}
+  
+  %%unterhalb
+  \draw[green,line width=1pt,visible on=<4->] (-4,0) -- (0,0) -- (12,5) -- (12,9);
+ 
+  \draw[red,line width=1pt,visible on=<5->] (0,9) -- (0,5) -- (12,0) -- (16,0);
+  
+  \begin{scope}[on background layer]
+   \fill[pattern=north west lines, pattern color=green!40!white,visible on=<4->] (-4,0) -- (12,0) -- (12,9) -- (16,9) -- (16,-4) -- (-4,-4) -- (-4,0);
+  \fill[pattern=north east lines, pattern color=red!40!white,visible on=<5->] (-4,-4) rectangle (0,9);
+  \fill[pattern=north east lines, pattern color=red!40!white,visible on=<5->] (0,-4) rectangle (16,0);
+  
+  \end{scope}
+ \end{tikzpicture}  
+\end{figure}
+ \begin{itemize}
+   \item<1-> Wenn A vor B in beiden Loki liegt, muss A rechts von B sein.
+   \item<4-> Wenn A vor B im positiven Lokus aber hinter B im negativen Lokus liegt, muss A unterhalb von B sein.
+ \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\begin{definition}[Common Subsequence]
+ Seien $X= (x_1,\dots,x_n)$ und $Y=(y_1,\dots, y_m)$. Eine common subsequence von $X$ und $Y$ ist eine Folge $Z=(z_1,\dots, z_k)$, sodass es Indices $i_1<\dots< i_k$ und $j_1 <\dots < j_k$ mit
+ \begin{align*}
+  z_h = x_{i_h} = y_{j_h} ~\forall 1\leq h\leq k
+ \end{align*}
+ gibt.
+\end{definition}
+\begin{definition}[Longest Common Subsequence]
+ Sei zu den beiden Folgen $X$ und $Y$ noch eine Gewichtsfunktion $\omega: X\cup Y \to \mathbb{R}$ gegeben. Dann definieren wir die longest common subsequence $\lcs(X,Y)$ als eine subsequence $Z$, sodass 
+ \begin{align*}
+  \omega(Z) = \sum_{z\in Z} \omega(z)
+ \end{align*}
+ maximal ist unter allen common subsequences von $X$ und $Y$.
+\end{definition}
+\end{frame}
+
+\begin{frame}
+ Aus einem Sequencepair $(X,Y)$ lassen sich so die Dimensionen eines optimalen Packings ablesen:
+ \begin{itemize}
+   \item Die Breite des Packings ist $\lcs(X,Y)$, wenn man die Folgenglieder mit der Breite des jeweiligen Rechtecks gewichtet.
+   \item Die Höhe des Packings ist $\lcs(X\rev, Y)$. wenn man die Folgenglieder mit der Höhe des jeweiligen Rechtecks gewichtet.
+ \end{itemize}
+ 
+ Es lässt sich auch eine optimale Position der Rechtecke berechnen. Sei $b$ ein Rechteck, es gelte $X= X_1 b X_2$ und $Y= Y_1 b Y_2$. Dann ist
+ \begin{itemize}
+   \item die $x$-Position von $b$ gleich $\lcs(X_1,Y_1)$.
+   \item die $y$-Position von $b$ gleich $\lcs(X_2\rev, Y_1)$.
+ \end{itemize}
+
+
+\end{frame}
+
+\begin{frame}{Vom Packing zum Sequence Pair}
+
+%a asd
+\begin{figure}
+  \centering
+  \begin{tikzpicture}[x=5mm,y=5mm]
+  \fill[red!15!white] (-6,-4) rectangle node[black, right]{1} (6,-2);
+  \fill[blue!15!white] (-6,-2) rectangle node[black]{2} (0,1);
+  \fill[orange!15!white] (-6, 2) rectangle node[black]{3} (0,5);
+  \fill[green!15!white] (0,0) rectangle node[black]{4} (6,4);
+  \draw (4,0) -- (0,0) -- (0,4) -- (4,4);
+  \draw[dashed] (4,0) -- (6,0);
+  \draw[dashed] (4,4) -- (6,4);
+  \draw[dashed] (-6,-2) -- (-4,-2);
+  \draw[dashed] (-6,-4) -- (-4,-4);
+  \draw[dashed] (4,-2) -- (6,-2);
+  \draw[dashed] (4,-4) -- (6,-4);
+  \draw (-4, -2) -- (4,-2);
+  \draw (-4, -4) -- (4,-4);
+  
+  \draw[dashed] (-6,-2) -- (-4,-2);
+  \draw[dashed] (-6,1) -- (-4,1);
+  \draw (-4,-2) -- (0,-2) -- (0,1) -- (-4,1);
+  
+  \draw[dashed] (-6,2) -- (-4,2);
+  \draw[dashed] (-6,5) -- (-4,5);
+  \draw (-4,2) -- (0,2) -- (0,5) -- (-4,5);
+  
+  \draw[visible on=<1>, line width=2pt] (-2,-5) -- (-2,6);
+  \draw[visible on=<1>, line width=2pt,red] (-2,-4) -- (-2,-2);
+  \draw[visible on=<1>, line width=2pt,blue] (-2,-2) -- (-2,1);
+  \draw[visible on=<1>, line width=2pt,orange] (-2,2) -- (-2,5);
+
+  \draw[visible on=<2-3>, line width=2pt] (0,-5) -- (0,6);
+  \draw[visible on=<2-3>, line width=2pt,red] (0,-4) -- (0,-2);
+  \draw[visible on=<2>, line width=2pt,blue] (0,-2) -- (0,1);
+  \draw[visible on=<2>, line width=2pt,orange] (0,2) -- (0,5);
+  
+  \draw[visible on=<3>, line width=2pt,green] (0,0) -- (0,4);
+
+  \node  (A) at (-10,7){Lokus};
+  \node (B) at (10,-7) {};
+  
+  \filldraw[line width=0.8pt,draw=red,fill=red!15!white] (-10,5) rectangle node[black] {1}(-9,6);
+  \fill[line width=0.8pt,draw=blue,fill=blue!15!white, visible on=<1-2>] (-10,3.5) rectangle node[black] {2} (-9,4.5);
+  \fill[line width=0.8pt,draw=orange,fill=orange!15!white, visible on=<1-2>] (-10,2) rectangle node[black] {3}(-9,3);
+  \fill[line width=0.8pt,draw=green,fill=green!15!white, visible on=<3>] (-10,3.5) rectangle node[black] {4}(-9,4.5);
+  \fill[line width=0.8pt,draw=blue,fill=blue!15!white, visible on=<3>] (-10,2) rectangle node[black] {2}(-9,3);
+  \fill[line width=0.8pt,draw=orange,fill=orange!15!white, visible on=<3>] (-10,0.5) rectangle node[black] {3} (-9,1.5);
+  
+  %\node[above,line width=0.8pt,draw=red,fill=red!15!white] (1) at (-10,5){1};
+  
+  \end{tikzpicture}
+\end{figure}
+
+% \begin{algorithm}[H]
+% \SetAlgoLined
+% \KwData{Eine Liste platzierter Rechtecke}
+% \KwResult{Ein valider positiver Lokus}
+% Initialisiere leere sweepline $s$\;
+% Initialisiere leere Liste $l$\;
+% \ForEach{Rechteck $r$, von links nach rechts}{
+% read current\;
+% \eIf{understand}{
+% go to next section\;
+% current section becomes this one\;
+% }{
+% go back to the beginning of current section\;
+% }
+% }
+% \caption{How to write algorithms}
+% \end{algorithm}
+\end{frame}
+
+\begin{frame}[fragile]
+ \begin{lstlisting}[basicstyle=\scriptsize]
+if (it != line.begin() && _rect_list[*std::prev(it)].contains_y(rec.base.y))
+{
+    up_pos[i] = seq_pair.positive_locus.insert(up_pos[*std::prev(it)], i);
+    line.erase(std::prev(it));
+}
+else
+{
+    if (it == line.begin())
+    {
+        seq_pair.positive_locus.push_front(i);
+        up_pos[i] = seq_pair.positive_locus.begin();
+    }
+    else
+    {
+        up_pos[i] = seq_pair.positive_locus.insert(std::next(up_pos[*std::prev(it)]), i);
+    }
+}
+ \end{lstlisting}
+\end{frame}
+
+\begin{frame}
+\begin{figure}
+  \centering
+  \begin{align*}
+  \Gamma^+ &= ({\color{blue!40!white} {\color<8>{blue} 5}}, {\color{green!40!white} {\color<5->{green}4}}, {\color{orange!40!white} 3} ,{\color{red!40!white} {\color<3,7>{red}2}} ,{\color{purple!40!white} {\color<2-5,8>{purple}1}})\\
+  \Gamma^-&=  ({\color{orange!40!white} 3} ,{\color{red!40!white} {\color<3,7>{red}2}}, {\color{blue!40!white} {\color<8>{blue} 5}}, {\color{green!40!white} {\color<5->{green}4}} ,{\color{purple!40!white} {\color<2-5,8>{purple}1}})
+  \end{align*}
+  \begin{tikzpicture}
+  \filldraw[purple,fill=purple!15!white] (0,0) rectangle node{1} +(2,3) ;
+  \filldraw[red,fill=red!15!white] (2,2) rectangle node{2} +(2,2);
+  \filldraw[orange,fill=orange!15!white] (4,3) rectangle node{3} +(1,1);
+  \filldraw[green,fill=green!15!white] (2,-1) rectangle node{4} +(1,2);
+  \filldraw[blue,fill=blue!15!white] (3,-0.5) rectangle node{5} +(3,2);
+  
+  \fill[purple, visible on=<2-5>] (0,0) rectangle node{1} +(2,3) ;
+  \fill[purple, visible on=<8>] (0,0) rectangle node{1} +(2,3) ;
+  \fill[red,visible on=<3>] (2,2) rectangle node{2} +(2,2);
+  \fill[red,visible on=<7>] (2,2) rectangle node{2} +(2,2);
+  \fill[green,visible on=<5->] (2,-1) rectangle node{4} +(1,2);
+  \fill[blue,visible on=<8>] (3,-0.5) rectangle node{5} +(3,2);
+  \end{tikzpicture}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}
+ \begin{algorithm}[H]
+\SetAlgoLined
+\KwData{Die Liste der zu packenden Rechtecke, ein Sequence Pair $(X,Y)$}
+\KwResult{Eine optimale Positionierung der Rechtecke in $x$-Richtung}
+\ForEach{Rechteck $b$ in $X$}{
+xPos[$b$] = length[$b$]\;
+xEnd = xPos[$b$] + $\breite(b)$\;
+\ForEach{Rechteck $c$ in $Y$ nach $b$}
+{
+\If{xEnd $>$ length[$c$]}{
+length[$c$] = xEnd\;
+}
+}
+}
+\end{algorithm}
+\end{frame}
+
+\begin{frame}[fragile]
+ \begin{lstlisting}[basicstyle=\tiny]
+size_t y_index = y_indexes[pack_index];
+//We insert with length 0 to optimize the greatest index less than search
+//0 is the node for no seq found so we treat the indices one-based in the context of cur_seqs
+const auto cur_node = cur_seqs.insert({ y_index + 1, 0 }).first;
+positions[pack_index] = std::prev(cur_node)->second;
+pos cur_seq_length = positions[pack_index] + pack.get_rect((int)pack_index).get_dimension(dim);
+cur_seqs[y_index + 1] = cur_seq_length;
+//We go forward until we no longer need to delete nodes
+while (std::next(cur_node) != cur_seqs.end() && std::next(cur_node)->second < cur_seq_length)
+{
+    cur_seqs.erase(std::next(cur_node)->first);
+}
+ \end{lstlisting}
+\end{frame}
+
+\begin{frame}{Netzlängenoptimierung - Distanzgraph}
+ \begin{itemize}
+   \item Für jeden Pin $P$ auf einem Rechteck $R$, der zu einem Netz $N$ gehört:
+   \begin{align*}
+    c(v_N^-, v_R) &= \ausmenge(P)\\
+    c(v_R, v_N^+) &= -\ausmenge(P)
+   \end{align*}
+   \item Für jedes Rechteck $R$
+   \begin{align*}
+    c(v_0, v_R) &= 0 \\
+    c(v_R, v_0) &= \begin{cases}\breite(0) - \breite(R) \\ \hoehe(0) - \hoehe(R)\end{cases}
+   \end{align*}
+   \item Für zwei Rechtecke $A$ und $B$, wobei $A$ links/unterhalb von $B$ liegt
+   \begin{align*}
+    c(v_A, v_B) = \begin{cases} -\breite(A) \\
+    -\hoehe(A)\end{cases}
+   \end{align*}
+ \end{itemize}
+
+\end{frame}
+\end{document}
