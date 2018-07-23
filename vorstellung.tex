@@ -18,6 +18,7 @@
 \DeclareMathOperator{\hoehe}{height}
 \DeclareMathOperator{\breite}{width}
 \DeclareMathOperator{\ausmenge}{offset}
+\DeclareMathOperator{\gewicht}{weight}
 \DeclareMathOperator{\lcs}{lcs}
 
 \newcommand{\rev}{^{\operatorname{R}}}
@@ -123,38 +124,6 @@ Die Reihenfolge der Rechtecke im Sequence Pair bestimmt ihre horizontalen bzw. v
 
 \end{frame}
 
-\begin{frame}
-\begin{definition}[Common Subsequence]
- Seien $X= (x_1,\dots,x_n)$ und $Y=(y_1,\dots, y_m)$. Eine common subsequence von $X$ und $Y$ ist eine Folge $Z=(z_1,\dots, z_k)$, sodass es Indices $i_1<\dots< i_k$ und $j_1 <\dots < j_k$ mit
- \begin{align*}
-  z_h = x_{i_h} = y_{j_h} ~\forall 1\leq h\leq k
- \end{align*}
- gibt.
-\end{definition}
-\begin{definition}[Longest Common Subsequence]
- Sei zu den beiden Folgen $X$ und $Y$ noch eine Gewichtsfunktion $\omega: X\cup Y \to \mathbb{R}$ gegeben. Dann definieren wir die longest common subsequence $\lcs(X,Y)$ als eine subsequence $Z$, sodass 
- \begin{align*}
-  \omega(Z) = \sum_{z\in Z} \omega(z)
- \end{align*}
- maximal ist unter allen common subsequences von $X$ und $Y$.
-\end{definition}
-\end{frame}
-
-\begin{frame}
- Aus einem Sequencepair $(X,Y)$ lassen sich so die Dimensionen eines optimalen Packings ablesen:
- \begin{itemize}
-   \item Die Breite des Packings ist $\lcs(X,Y)$, wenn man die Folgenglieder mit der Breite des jeweiligen Rechtecks gewichtet.
-   \item Die Höhe des Packings ist $\lcs(X\rev, Y)$. wenn man die Folgenglieder mit der Höhe des jeweiligen Rechtecks gewichtet.
- \end{itemize}
- 
- Es lässt sich auch eine optimale Position der Rechtecke berechnen. Sei $b$ ein Rechteck, es gelte $X= X_1 b X_2$ und $Y= Y_1 b Y_2$. Dann ist
- \begin{itemize}
-   \item die $x$-Position von $b$ gleich $\lcs(X_1,Y_1)$.
-   \item die $y$-Position von $b$ gleich $\lcs(X_2\rev, Y_1)$.
- \end{itemize}
-
-
-\end{frame}
 
 \begin{frame}{Vom Packing zum Sequence Pair}
 
@@ -232,9 +201,14 @@ Die Reihenfolge der Rechtecke im Sequence Pair bestimmt ihre horizontalen bzw. v
 
 \begin{frame}[fragile]
  \begin{lstlisting}[basicstyle=\scriptsize]
-if (it != line.begin() && _rect_list[*std::prev(it)].contains_y(rec.base.y))
+// line hat Typ std::set
+// it ist die Position des aktuellen Rechtecks in der Sweepline
+// in up_pos werden die Iteratoren der Rechtecke im positiven Lokus gespeichert.
+if (it != line.begin() && 
+    _rect_list[*std::prev(it)].contains_y(rec.base.y))
 {
-    up_pos[i] = seq_pair.positive_locus.insert(up_pos[*std::prev(it)], i);
+    up_pos[i] = seq_pair.positive_locus.insert(
+                 up_pos[*std::prev(it)], i);
     line.erase(std::prev(it));
 }
 else
@@ -246,13 +220,46 @@ else
     }
     else
     {
-        up_pos[i] = seq_pair.positive_locus.insert(std::next(up_pos[*std::prev(it)]), i);
+        up_pos[i] = seq_pair.positive_locus.insert(
+                     std::next(up_pos[*std::prev(it)]), i);
     }
 }
  \end{lstlisting}
 \end{frame}
 
-\begin{frame}
+
+\begin{frame}{Vom Sequence Pair zum Packing}
+\begin{definition}[Common Subsequence]
+ Seien $X= (x_1,\dots,x_n)$ und $Y=(y_1,\dots, y_m)$. Eine common subsequence von $X$ und $Y$ ist eine Folge $Z=(z_1,\dots, z_k)$, sodass es Indices $i_1<\dots< i_k$ und $j_1 <\dots < j_k$ gibt mit
+ \begin{align*}
+  z_h = x_{i_h} = y_{j_h} ~\forall 1\leq h\leq k\;.
+ \end{align*}
+\end{definition}
+\begin{definition}[Longest Common Subsequence]
+ Sei zu den beiden Folgen $X$ und $Y$ noch eine Gewichtsfunktion $\omega: X\cup Y \to \mathbb{R}$ gegeben. Dann definieren wir die longest common subsequence $\lcs(X,Y)$ als eine subsequence $Z$, sodass 
+ \begin{align*}
+  \omega(Z) = \sum_{z\in Z} \omega(z)
+ \end{align*}
+ maximal ist unter allen common subsequences von $X$ und $Y$.
+\end{definition}
+\end{frame}
+
+\begin{frame}{Vom Sequence Pair zum Packing}
+ Aus einem Sequencepair $(X,Y)$ lassen sich so die Dimensionen eines optimalen Packings ablesen:
+ \begin{itemize}
+   \item Die Breite des Packings ist $\lcs(X,Y)$, wenn man die Folgenglieder mit der Breite des jeweiligen Rechtecks gewichtet.
+   \item Die Höhe des Packings ist $\lcs(X\rev, Y)$. wenn man die Folgenglieder mit der Höhe des jeweiligen Rechtecks gewichtet.
+ \end{itemize}
+ 
+ Es lässt sich auch eine optimale Position der Rechtecke berechnen. Sei $b$ ein Rechteck, es gelte $X= X_1 b X_2$ und $Y= Y_1 b Y_2$. Dann ist
+ \begin{itemize}
+   \item die $x$-Position von $b$ gleich $\lcs(X_1,Y_1)$.
+   \item die $y$-Position von $b$ gleich $\lcs(X_2\rev, Y_1)$.
+ \end{itemize}
+
+
+\end{frame}
+\begin{frame}{Vom Sequence Pair zum Packing}
 \begin{figure}
   \centering
   \begin{align*}
@@ -277,7 +284,7 @@ else
 
 \end{frame}
 
-\begin{frame}
+\begin{frame}{Vom Sequence Pair zum Packing}
  \begin{algorithm}[H]
 \SetAlgoLined
 \KwData{Die Liste der zu packenden Rechtecke, ein Sequence Pair $(X,Y)$}
@@ -295,8 +302,8 @@ length[$c$] = xEnd\;
 \end{algorithm}
 \end{frame}
 
-\begin{frame}[fragile]
- \begin{lstlisting}[basicstyle=\tiny]
+\begin{frame}[fragile]{Vom Sequence Pair zum Packing}
+ \begin{lstlisting}[basicstyle=\scriptsize]
 size_t y_index = y_indexes[pack_index];
 //We insert with length 0 to optimize the greatest index less than search
 //0 is the node for no seq found so we treat the indices one-based in the context of cur_seqs
@@ -313,7 +320,7 @@ while (std::next(cur_node) != cur_seqs.end() && std::next(cur_node)->second < cu
 \end{frame}
 
 \begin{frame}{Netzlängenoptimierung - Distanzgraph}
- \begin{itemize}
+ \begin{enumerate}
    \item Für jeden Pin $P$ auf einem Rechteck $R$, der zu einem Netz $N$ gehört:
    \begin{align*}
     c(v_N^-, v_R) &= \ausmenge(P)\\
@@ -329,7 +336,61 @@ while (std::next(cur_node) != cur_seqs.end() && std::next(cur_node)->second < cu
     c(v_A, v_B) = \begin{cases} -\breite(A) \\
     -\hoehe(A)\end{cases}
    \end{align*}
- \end{itemize}
+ \end{enumerate}
+
+\end{frame}
+
+\begin{frame}
+ \begin{definition}[Potential]
+  Ein Potential auf einem Graphen $(V,E)$ mit Kantengewichten $c\colon E \to \mathbb{R}$ ist eine Funktion $\pi\colon V\to \mathbb{R}$, sodass für alle Kanten $e=(v,w)$
+  \begin{align*}
+   \pi(w) - \pi(v) - c(e) \geq 0
+  \end{align*}
+  gilt.
+ \end{definition}
+ 
+ Ein Potential auf dem Distanzgraphen entspricht so einem validen Packing der Rechtecke und der Netze. Sei 
+ \begin{align*}
+  b(v_N^-) = \gewicht(N) && b(v_N^+) = -\gewicht(N)\;.
+ \end{align*}
+ Der Wert eines minimalen $b$-Flusses entspricht genau dem Wert des zugehörigen Packings.
+\end{frame}
+
+\begin{frame}[fragile]
+\begin{lstlisting}[basicstyle=\scriptsize]
+bool graph::compute_min_flow()
+{
+    if (!compute_starting_potential())
+    {
+        return false;
+    }
+
+    while (_list.at(0).demand > 0)
+    {
+        path p;
+        weight f = compute_shortest_path(p);
+        augment_path(p, f);
+    }
+
+    return true;
+}
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}{Packings ennumerieren}
+ Alle Sequence Pairs mit Drehungen:
+ \begin{enumerate}
+   \item \texttt{std::next\_permutation} auf $X$ und $Y$
+   \item \texttt{rectangle\_iterator} drecht Rechtecke
+ \end{enumerate}
+ 
+ Alle Vertauschungen von $k$ Rechtecken
+ \begin{enumerate}
+   \item $k$-Teilmengen der Rechtecke finden mit \texttt{next\_combination}
+   \item Teilmenge permutieren mit \texttt{std::next\_permutation} und auf Sequence Pair übertragen. 
+   \item \texttt{rectangle\_iterator} dreht Rechtecke.
+ \end{enumerate}
+
 
 \end{frame}
 \end{document}
